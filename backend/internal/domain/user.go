@@ -19,6 +19,7 @@ type User struct {
 	Email        string
 	PasswordHash string
 	CreatedAt    time.Time
+	UpdatedAt    time.Time
 }
 
 type AuthUseCase interface {
@@ -36,6 +37,6 @@ type TokenGenerator interface {
 }
 
 type UserRepository interface {
-	Create(user *User) error
-	FindByEmail(email string) (*User, error)
+	Create(ctx context.Context, user *User) error
+	FindByEmail(ctx context.Context, email string) (*User, error)
 }

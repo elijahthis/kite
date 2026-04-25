@@ -21,7 +21,7 @@ func NewAuthService(h domain.PasswordHasher, t domain.TokenGenerator, r domain.U
 }
 
 func (as *AuthService) Register(ctx context.Context, email string, plainPassword string, firstName string) (*domain.User, error) {
-	existingUser, err := as.repo.FindByEmail((email))
+	existingUser, err := as.repo.FindByEmail(ctx, email)
 	if err != nil {
 		return nil, err
 	}
@@ -35,18 +35,18 @@ func (as *AuthService) Register(ctx context.Context, email string, plainPassword
 	}
 
 	user := &domain.User{
-		FirstName:         firstName,
+		FirstName:    firstName,
 		Email:        email,
 		PasswordHash: hashedPassword,
 	}
-	if err := as.repo.Create(user); err != nil {
+	if err := as.repo.Create(ctx, user); err != nil {
 		return nil, err
 	}
 	return user, nil
 }
 
 func (as *AuthService) Login(ctx context.Context, email string, plainPassword string) (string, error) {
-	user, err := as.repo.FindByEmail(email)
+	user, err := as.repo.FindByEmail(ctx, email)
 	if err != nil {
 		return "", err
 	}
