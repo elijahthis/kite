@@ -14,6 +14,10 @@ type PostgresUserRepo struct {
 	db *sqlx.DB
 }
 
+func NewPostgresUserRepo(db *sqlx.DB) *PostgresUserRepo {
+	return &PostgresUserRepo{db: db}
+}
+
 type dbUser struct {
 	ID           uuid.UUID `db:"id"`
 	Email        string    `db:"email"`

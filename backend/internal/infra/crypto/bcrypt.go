@@ -6,7 +6,7 @@ type BcryptHasher struct {
 	cost int
 }
 
-func NewBcryptHasher(cost int) *BcryptHasher {
+func NewBcryptHasher() *BcryptHasher {
 	return &BcryptHasher{
 		cost: bcrypt.DefaultCost,
 	}
