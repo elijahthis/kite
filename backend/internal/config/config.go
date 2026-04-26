@@ -17,7 +17,7 @@ type Config struct {
 func LoadConfig() *Config {
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatal().Msg("Error loading .env file")
+		log.Info().Msg("No .env file found, relying on system environment variables")
 	}
 
 	DB_CONN_STR, exists := os.LookupEnv("DB_CONN_STR")
