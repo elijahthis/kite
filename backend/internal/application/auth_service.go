@@ -2,6 +2,7 @@ package application
 
 import (
 	"context"
+	"strings"
 
 	"github.com/elijahthis/kite/internal/domain"
 )
@@ -21,8 +22,8 @@ func NewAuthService(h domain.PasswordHasher, t domain.TokenGenerator, r domain.U
 }
 
 func (as *AuthService) Register(ctx context.Context, email string, plainPassword string, firstName string) (*domain.User, error) {
-	existingUser, err := as.repo.FindByEmail(ctx, email)
-	if err != nil || existingUser != nil {
+	existingUser, _ := as.repo.FindByEmail(ctx, email)
+	if existingUser != nil {
 		return nil, domain.ErrUserAlreadyExists
 	}
 
@@ -43,13 +44,14 @@ func (as *AuthService) Register(ctx context.Context, email string, plainPassword
 }
 
 func (as *AuthService) Login(ctx context.Context, email string, plainPassword string) (string, error) {
+	email = strings.ToLower(strings.TrimSpace(email))
+
 	user, err := as.repo.FindByEmail(ctx, email)
-	if err != nil {
-		return "", err
-	}
-	if user == nil {
+
+	if err != nil || user == nil {
 		return "", domain.ErrInvalidCredentials
 	}
+
 	if !as.hasher.Compare(user.PasswordHash, plainPassword) {
 		return "", domain.ErrInvalidCredentials
 	}
