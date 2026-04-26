@@ -22,7 +22,10 @@ func NewAuthService(h domain.PasswordHasher, t domain.TokenGenerator, r domain.U
 }
 
 func (as *AuthService) Register(ctx context.Context, email string, plainPassword string, firstName string) (*domain.User, error) {
-	existingUser, _ := as.repo.FindByEmail(ctx, email)
+	existingUser, err := as.repo.FindByEmail(ctx, email)
+	if err != nil {
+		return nil, err
+	}
 	if existingUser != nil {
 		return nil, domain.ErrUserAlreadyExists
 	}
