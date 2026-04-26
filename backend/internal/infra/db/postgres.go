@@ -6,10 +6,11 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx"
+	_ "github.com/lib/pq"
 )
 
 func NewDBPool(ctx context.Context, dsn string) (*sqlx.DB, error) {
-	db, err := sqlx.ConnectContext(ctx, "pgx", dsn)
+	db, err := sqlx.ConnectContext(ctx, "postgres", dsn)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to db: %w", err)
 	}

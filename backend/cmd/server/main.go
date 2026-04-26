@@ -1,13 +1,12 @@
 package main
 
 import (
-	// "github.com/elijahthis/kite/internal/database"
-	// "github.com/elijahthis/kite/internal/factory"
-
+	"net/http"
 	"os"
 	"time"
 
 	"github.com/elijahthis/kite/internal/config"
+	"github.com/elijahthis/kite/internal/scripts"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
@@ -17,10 +16,12 @@ func main() {
 
 	f := config.NewFactory()
 
-	// apps
-	// handlers
+	if err := scripts.RunMigrations(f.Config.DB_MIGRATIONS_DIRECTORY, f.Config.DB_CONN_STR); err != nil {
+		log.Error().Err(err).Msg("Unable to run migrations")
+	}
 
-	// if err := database.RunMigrations(f.DBConnStr); err != nil {
-	// 	log.Error().Err(err).Msg("Unable to run migrations")
-	// }
+	log.Info().Msgf("Server is listening on port %s\n", f.Config.PORT)
+	if err := http.ListenAndServe(":"+f.Config.PORT, f.Router.Router); err != nil {
+		log.Fatal().Msg("Unable to start server")
+	}
 }

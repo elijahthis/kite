@@ -23,7 +23,7 @@ type dbUser struct {
 	Email        string    `db:"email"`
 	PasswordHash string    `db:"password_hash"`
 	Firstname    string    `db:"firstname"`
-	CreatedAt    time.Time `db:"updated_at"`
+	CreatedAt    time.Time `db:"created_at"`
 	UpdatedAt    time.Time `db:"updated_at"`
 }
 

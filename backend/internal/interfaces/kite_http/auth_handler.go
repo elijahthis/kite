@@ -1,4 +1,4 @@
-package kitehttp
+package interfaces
 
 import (
 	"encoding/json"
@@ -7,21 +7,22 @@ import (
 
 	"github.com/elijahthis/kite/internal/application"
 	"github.com/elijahthis/kite/internal/domain"
+	"github.com/rs/zerolog/log"
 )
 
 type AuthHandler struct {
-	service application.AuthService
+	service *application.AuthService
 }
 
 type LoginRequest struct {
-	Email    string
-	Password string
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }
 
 type RegisterRequest struct {
-	FirstName string
-	Email     string
-	Password  string
+	FirstName string `json:"first_name"`
+	Email     string `json:"email"`
+	Password  string `json:"password"`
 }
 
 type ErrorResponse struct {
@@ -29,20 +30,26 @@ type ErrorResponse struct {
 	Message string `json:"message"`
 }
 
+func NewAuthHandler(s application.AuthService) *AuthHandler {
+	return &AuthHandler{
+		service: &s,
+	}
+}
+
 func (ah *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	var req RegisterRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		writeError(w, http.StatusBadRequest, "invalid_request", "Unable to parse request body")
+		writeError(w, http.StatusBadRequest, "invalid_request", "Unable to parse request body", err)
 		return
 	}
 
 	user, err := ah.service.Register(r.Context(), req.Email, req.Password, req.FirstName)
 	if err != nil {
 		if err == domain.ErrUserAlreadyExists {
-			writeError(w, http.StatusBadRequest, "signup_failed", err.Error())
+			writeError(w, http.StatusBadRequest, "signup_failed", err.Error(), err)
 			return
 		}
-		writeError(w, http.StatusInternalServerError, "server_error", "An internal error occurred")
+		writeError(w, http.StatusInternalServerError, "server_error", "An internal error occurred", err)
 		return
 	}
 
@@ -56,17 +63,17 @@ func (ah *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 func (ah *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	var req LoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		writeError(w, http.StatusBadRequest, "invalid_request", "Unable to parse request body")
+		writeError(w, http.StatusBadRequest, "invalid_request", "Unable to parse request body", err)
 		return
 	}
 
 	token, err := ah.service.Login(r.Context(), req.Email, req.Password)
 	if err != nil {
 		if err == domain.ErrInvalidCredentials {
-			writeError(w, http.StatusBadRequest, "auth_failed", err.Error())
+			writeError(w, http.StatusBadRequest, "auth_failed", err.Error(), err)
 			return
 		}
-		writeError(w, http.StatusInternalServerError, "server_error", "An internal error occurred")
+		writeError(w, http.StatusInternalServerError, "server_error", "An internal error occurred", err)
 		return
 	}
 
@@ -84,7 +91,8 @@ func (ah *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]string{"status": "success"})
 }
 
-func writeError(w http.ResponseWriter, status int, errCode, msg string) {
+func writeError(w http.ResponseWriter, status int, errCode, msg string, err error) {
+	log.Error().Err(err).Msg(err.Error())
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	json.NewEncoder(w).Encode(ErrorResponse{Error: errCode, Message: msg})
