@@ -110,3 +110,30 @@ func (r *PostgresLedgerRepo) GetAllAccountBalances(ctx context.Context, userID u
 
 	return balances, nil
 }
+
+func (r *PostgresLedgerRepo) UpdateTransactionStatus(ctx context.Context, txnID uuid.UUID, status domain.Status) error {
+	q := getQuerier(ctx, r.db)
+	now := time.Now().UTC()
+
+	query := `
+        UPDATE transactions
+        SET status = $1, updated_at = $2
+        WHERE id = $3
+    `
+
+	result, err := q.ExecContext(ctx, query, status.String(), now, txnID)
+	if err != nil {
+		return fmt.Errorf("failed to execute status update query: %w", err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("failed to check rows affected: %w", err)
+	}
+
+	if rowsAffected == 0 {
+		return fmt.Errorf("transaction with ID %s not found", txnID)
+	}
+
+	return nil
+}

@@ -18,6 +18,7 @@ const (
 	DEPOSIT TxnType = iota
 	PAYOUT
 	CONVERSION
+	REVERSAL
 )
 const (
 	PENDING Status = iota
@@ -56,6 +57,7 @@ func (t TxnType) String() string {
 		DEPOSIT:    "DEPOSIT",
 		PAYOUT:     "PAYOUT",
 		CONVERSION: "CONVERSION",
+		REVERSAL:   "REVERSAL",
 	}
 
 	return options[t]

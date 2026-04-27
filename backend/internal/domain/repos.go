@@ -23,6 +23,7 @@ type LedgerRepository interface {
 	AppendTransaction(ctx context.Context, txn *Transaction) error
 	GetAccountBalance(ctx context.Context, account *Account) (int64, error)
 	GetAllAccountBalances(ctx context.Context, userID uuid.UUID) (map[Currency]int64, error)
+	UpdateTransactionStatus(ctx context.Context, txnID uuid.UUID, status Status) error
 }
 
 type QuoteRepository interface {
