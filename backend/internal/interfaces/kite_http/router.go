@@ -12,7 +12,8 @@ type Handlers struct {
 }
 
 type Router struct {
-	Router *http.ServeMux
+	Router  *http.ServeMux
+	Handler http.Handler
 }
 
 func NewRouter() *Router {
@@ -23,7 +24,7 @@ func NewRouter() *Router {
 	}
 }
 
-func (r *Router) SetupRouter(h Handlers, jwtSecret string) http.Handler {
+func (r *Router) SetupRouter(h Handlers, jwtSecret string) {
 	if h.Auth != nil {
 		r.Router.HandleFunc("POST /api/v1/auth/register", h.Auth.Register)
 		r.Router.HandleFunc("POST /api/v1/auth/login", h.Auth.Login)
@@ -48,7 +49,8 @@ func (r *Router) SetupRouter(h Handlers, jwtSecret string) http.Handler {
 	}
 
 	handler := corsMiddleware(r.Router)
+	handler = loggingMiddleware(handler)
 
-	return handler
+	r.Handler = handler
 	// return r.Router
 }

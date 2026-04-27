@@ -26,7 +26,7 @@ func main() {
 	}
 
 	log.Info().Msgf("Server is listening on port %s\n", f.Config.PORT)
-	if err := http.ListenAndServe(":"+f.Config.PORT, f.Router.Router); err != nil {
+	if err := http.ListenAndServe(":"+f.Config.PORT, f.Router.Handler); err != nil {
 		log.Fatal().Msg("Unable to start server")
 	}
 }

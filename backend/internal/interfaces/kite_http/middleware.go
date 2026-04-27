@@ -6,6 +6,7 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
+	"github.com/rs/zerolog/log"
 )
 
 type contextKey string
@@ -25,6 +26,18 @@ func corsMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
+		next.ServeHTTP(w, r)
+	})
+}
+
+func loggingMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.
+			Info().
+			Str("method", r.Method).
+			Str("path", r.URL.Path).
+			Str("ip", r.RemoteAddr).
+			Msgf("Incoming Request: ")
 		next.ServeHTTP(w, r)
 	})
 }
