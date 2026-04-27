@@ -10,9 +10,7 @@ import AuthBanner from "../../components/auth/AuthBanner";
 import SelectDropdown from "../../components/form/SelectDropdown";
 import type { ApiSuccessResponse, CurrencyCode } from "../../types";
 import { extractApiError } from "../../utils/errors";
-
-// The currencies supported by your backend enum
-const SUPPORTED_CURRENCIES = ["USD", "GBP", "EUR", "NGN", "KES"];
+import { SUPPORTED_CURRENCIES } from "../../utils/constants";
 
 export default function Deposit() {
 	const navigate = useNavigate();
@@ -110,10 +108,7 @@ export default function Deposit() {
 								label="Select Currency"
 								value={currency}
 								setValue={(val: string) => setCurrency(val)}
-								valueList={SUPPORTED_CURRENCIES.map((item) => ({
-									label: item,
-									value: item,
-								}))}
+								valueList={SUPPORTED_CURRENCIES}
 							/>
 						</div>
 
@@ -124,9 +119,6 @@ export default function Deposit() {
 								required={true}
 								value={amountStr}
 								setValue={(val: string) => setAmountStr(val)}
-								// Adding extra props if your InputComponent supports them:
-								// min="0.01"
-								// step="0.01"
 							/>
 							<p className="text-xs text-gray-400 mt-1">
 								Enter the amount (e.g., 100.50).

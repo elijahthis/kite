@@ -8,18 +8,10 @@ import Button from "../../components/Button";
 import InputComponent from "../../components/form/InputComponent";
 import SelectDropdown from "../../components/form/SelectDropdown"; // Your new component
 import AuthBanner from "../../components/auth/AuthBanner";
-import { formatCurrency } from "../../utils";
 import { extractApiError } from "../../utils/errors";
 import type { Quote, CurrencyCode, ApiSuccessResponse } from "../../types";
 import ConversionsQuoteReview from "./ConversionsQuoteReview";
-
-const SUPPORTED_CURRENCIES = [
-	{ label: "USD", value: "USD" },
-	{ label: "GBP", value: "GBP" },
-	{ label: "EUR", value: "EUR" },
-	{ label: "NGN", value: "NGN" },
-	{ label: "KES", value: "KES" },
-];
+import { SUPPORTED_CURRENCIES } from "../../utils/constants";
 
 export default function Conversion() {
 	const navigate = useNavigate();
@@ -134,7 +126,6 @@ export default function Conversion() {
 						</div>
 					)}
 
-					{/* Form is disabled if a quote is active, so they don't change amounts without getting a new quote */}
 					<form onSubmit={handleGetQuote} className="space-y-5">
 						<div className="grid grid-cols-2 gap-4">
 							<SelectDropdown
@@ -164,11 +155,10 @@ export default function Conversion() {
 							value={amountStr}
 							setValue={(val: string) => {
 								setAmountStr(val);
-								setQuote(null); // Clear quote if they change the amount
+								setQuote(null);
 							}}
 						/>
 
-						{/* Only show Get Quote button if we don't have an active quote */}
 						{!quote && (
 							<div className="pt-2">
 								<Button
@@ -185,7 +175,6 @@ export default function Conversion() {
 						)}
 					</form>
 
-					{/* --- QUOTE REVIEW SECTION --- */}
 					{quote && !successMsg && (
 						<ConversionsQuoteReview
 							sourceCurrency={sourceCurrency}

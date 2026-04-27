@@ -5,8 +5,7 @@ import Signup from "./features/auth/signup";
 import Dashboard from "./features/dash/Dashboard";
 import Deposit from "./features/transactions/Deposit";
 import Conversion from "./features/transactions/Conversions";
-// import Signup from './features/auth/Signup';
-// import Dashboard from './features/dashboard/Dashboard';
+import Payout from "./features/transactions/Payout";
 
 function App() {
 	return (
@@ -16,10 +15,13 @@ function App() {
 				{/* Auth  */}
 				<Route path="/login" element={<Login />} />
 				<Route path="/signup" element={<Signup />} />
-				{/* Protected App Routes */}
+
+				{/* Protected Routes */}
 				<Route path="/dashboard" element={<Dashboard />} />
 				<Route path="/deposit" element={<Deposit />} />
 				<Route path="/conversion" element={<Conversion />} />
+				<Route path="/payout" element={<Payout />} />
+
 				<Route path="*" element={<Navigate to="/login" replace />} />
 			</Routes>
 		</BrowserRouter>
