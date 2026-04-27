@@ -137,3 +137,36 @@ func (r *PostgresLedgerRepo) UpdateTransactionStatus(ctx context.Context, txnID 
 
 	return nil
 }
+
+func (r *PostgresLedgerRepo) GetTransactionHistory(ctx context.Context, userID uuid.UUID, limit, offset int) ([]domain.TransactionHistory, error) {
+	q := getQuerier(ctx, r.db)
+
+	query := `
+		SELECT 
+			t.id as transaction_id, 
+			t.type, 
+			t.status, 
+			le.amount, 
+			le.direction, 
+			le.currency, 
+			t.reference, 
+			t.created_at
+		FROM transactions t
+		JOIN ledger_entries le ON t.id = le.transaction_id
+		JOIN accounts a ON le.account_id = a.id
+		WHERE a.user_id = $1
+		ORDER BY t.created_at DESC
+		LIMIT $2 OFFSET $3
+	`
+
+	var history []domain.TransactionHistory
+	if err := q.SelectContext(ctx, &history, query, userID, limit, offset); err != nil {
+		return nil, fmt.Errorf("failed to fetch transaction history: %w", err)
+	}
+
+	if history == nil {
+		return []domain.TransactionHistory{}, nil
+	}
+
+	return history, nil
+}

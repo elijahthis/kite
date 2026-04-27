@@ -24,6 +24,7 @@ type LedgerRepository interface {
 	GetAccountBalance(ctx context.Context, account *Account) (int64, error)
 	GetAllAccountBalances(ctx context.Context, userID uuid.UUID) (map[Currency]int64, error)
 	UpdateTransactionStatus(ctx context.Context, txnID uuid.UUID, status Status) error
+	GetTransactionHistory(ctx context.Context, userID uuid.UUID, limit, offset int) ([]TransactionHistory, error)
 }
 
 type QuoteRepository interface {

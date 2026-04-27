@@ -42,8 +42,15 @@ type Transaction struct {
 	UpdatedAt time.Time
 }
 
-type Ledger struct {
-	ledgerEntries []LedgerEntry
+type TransactionHistory struct {
+	TransactionID uuid.UUID `json:"transaction_id" db:"transaction_id"`
+	Type          string    `json:"type" db:"type"`
+	Status        string    `json:"status" db:"status"`
+	Amount        int64     `json:"amount" db:"amount"`
+	Direction     string    `json:"direction" db:"direction"`
+	Currency      string    `json:"currency" db:"currency"`
+	Reference     string    `json:"reference" db:"reference"`
+	CreatedAt     time.Time `json:"created_at" db:"created_at"`
 }
 
 type TransactionBuilder struct {

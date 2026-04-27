@@ -96,6 +96,7 @@ func generateServices(f *Factory) *application.Services {
 		Conversion: application.NewConversionService(f.Repos.FxProvider, f.Repos.QuoteRepo, f.Repos.AtomicUnit, f.Repos.UserRepo, f.Repos.AccountRepo, f.Repos.LedgerRepo, f.Config.SYSTEM_USER_EMAIL),
 		Wallet:     application.NewWalletService(f.Repos.LedgerRepo),
 		Payout:     application.NewPayoutService(f.Repos.AtomicUnit, f.Repos.UserRepo, f.Repos.AccountRepo, f.Repos.LedgerRepo, f.Config.SYSTEM_USER_EMAIL),
+		History:    application.NewHistoryService(f.Repos.LedgerRepo),
 	}
 }
 
@@ -106,6 +107,7 @@ func generateHandlers(f *Factory) *interfaces.Handlers {
 		Conversion: interfaces.NewConversionHandler(*f.services.Conversion),
 		Wallet:     interfaces.NewWalletHandler(*f.services.Wallet),
 		Payout:     interfaces.NewPayoutHandler(*f.services.Payout),
+		History:    interfaces.NewHistoryHandler(*f.services.History),
 	}
 }
 

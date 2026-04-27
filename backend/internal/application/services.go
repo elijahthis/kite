@@ -14,6 +14,7 @@ type Services struct {
 	Conversion *ConversionService
 	Wallet     *WalletService
 	Payout     *PayoutService
+	History    *HistoryService
 }
 
 func getOrCreateAccountUtil(accountRepo domain.AccountRepository, ctx context.Context, ownerID uuid.UUID, currency domain.Currency) (*domain.Account, error) {
