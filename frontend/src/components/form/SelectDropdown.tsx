@@ -3,7 +3,7 @@ import type { ChangeEvent } from "react";
 interface SelectDropdownProps {
 	label: string;
 	value: string;
-	setValue: (val: string) => void;
+	setValue: (val: any) => void;
 	valueList: { label: string; value: string }[];
 }
 

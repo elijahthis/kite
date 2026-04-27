@@ -4,6 +4,7 @@ import Login from "./features/auth/login";
 import Signup from "./features/auth/signup";
 import Dashboard from "./features/dash/Dashboard";
 import Deposit from "./features/transactions/Deposit";
+import Conversion from "./features/transactions/Conversions";
 // import Signup from './features/auth/Signup';
 // import Dashboard from './features/dashboard/Dashboard';
 
@@ -18,6 +19,7 @@ function App() {
 				{/* Protected App Routes */}
 				<Route path="/dashboard" element={<Dashboard />} />
 				<Route path="/deposit" element={<Deposit />} />
+				<Route path="/conversion" element={<Conversion />} />
 				<Route path="*" element={<Navigate to="/login" replace />} />
 			</Routes>
 		</BrowserRouter>

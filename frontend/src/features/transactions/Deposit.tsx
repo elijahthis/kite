@@ -8,6 +8,8 @@ import Button from "../../components/Button";
 import InputComponent from "../../components/form/InputComponent";
 import AuthBanner from "../../components/auth/AuthBanner";
 import SelectDropdown from "../../components/form/SelectDropdown";
+import type { ApiSuccessResponse, CurrencyCode } from "../../types";
+import { extractApiError } from "../../utils/errors";
 
 // The currencies supported by your backend enum
 const SUPPORTED_CURRENCIES = ["USD", "GBP", "EUR", "NGN", "KES"];
@@ -20,13 +22,26 @@ export default function Deposit() {
 	const [amountStr, setAmountStr] = useState("");
 	const [successMsg, setSuccessMsg] = useState("");
 
-	const depositMutation = useMutation({
+	interface DepositPayload {
+		currency: CurrencyCode;
+		amount: number;
+		reference: string;
+	}
+
+	const depositMutation = useMutation<
+		ApiSuccessResponse,
+		Error,
+		DepositPayload
+	>({
 		mutationFn: async (payload: {
 			currency: string;
 			amount: number;
 			reference: string;
 		}) => {
-			const response = await apiClient.post("/deposits", payload);
+			const response = await apiClient.post<ApiSuccessResponse>(
+				"/deposits",
+				payload,
+			);
 			return response.data;
 		},
 		onSuccess: () => {
@@ -54,7 +69,7 @@ export default function Deposit() {
 		const reference = crypto.randomUUID();
 
 		depositMutation.mutate({
-			currency,
+			currency: currency as CurrencyCode,
 			amount: amountInMinorUnits,
 			reference,
 		});
@@ -74,8 +89,10 @@ export default function Deposit() {
 					{depositMutation.isError && (
 						<div className="mb-4">
 							<AuthBanner>
-								{(depositMutation.error as any).response?.data?.message ||
-									"Failed to process deposit"}
+								{extractApiError(
+									depositMutation.error,
+									"Failed to process deposit",
+								)}
 							</AuthBanner>
 						</div>
 					)}
