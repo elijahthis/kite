@@ -12,7 +12,7 @@ type contextKey string
 
 const txKey contextKey = "kite_tx_key"
 
-// SQLXAtomicUnit manages database transactions.
+
 type SQLXAtomicUnit struct {
 	db *sqlx.DB
 }

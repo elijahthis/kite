@@ -2,11 +2,13 @@ package config
 
 import (
 	"context"
+	"time"
 
 	"github.com/elijahthis/kite/internal/application"
 	"github.com/elijahthis/kite/internal/domain"
 	"github.com/elijahthis/kite/internal/infra/crypto"
 	"github.com/elijahthis/kite/internal/infra/db"
+	"github.com/elijahthis/kite/internal/infra/fx"
 	interfaces "github.com/elijahthis/kite/internal/interfaces/kite_http"
 	"github.com/jmoiron/sqlx"
 	"github.com/rs/zerolog/log"
@@ -28,6 +30,8 @@ type Repos struct {
 	AccountRepo domain.AccountRepository
 	LedgerRepo  domain.LedgerRepository
 	AtomicUnit  domain.AtomicUnit
+	FxProvider  domain.FXRateProvider
+	QuoteRepo   domain.QuoteRepository
 }
 
 func NewFactory() *Factory {
@@ -64,11 +68,16 @@ func newRepos(dbx *sqlx.DB) *Repos {
 	ledgerRepo := db.NewPostgresLedgerRepo(dbx)
 	atomicUnit := db.NewAtomicUnit(dbx)
 
+	fxProvider := fx.NewERAPIProvider(5 * time.Minute)
+	quoteRepo := db.NewPostgresQuoteRepo(dbx)
+
 	return &Repos{
 		UserRepo:    userRepo,
 		AccountRepo: accountRepo,
 		LedgerRepo:  ledgerRepo,
 		AtomicUnit:  atomicUnit,
+		FxProvider:  fxProvider,
+		QuoteRepo:   quoteRepo,
 	}
 }
 
@@ -82,15 +91,17 @@ func newTokenGenerator(secretKey string) domain.TokenGenerator {
 
 func generateServices(f *Factory) *application.Services {
 	return &application.Services{
-		Auth:    application.NewAuthService(f.Hasher, f.TokenGenerator, f.Repos.UserRepo),
-		Deposit: application.NewDepositService(f.Repos.AccountRepo, f.Repos.LedgerRepo, f.Repos.UserRepo, f.Repos.AtomicUnit, f.Config.SYSTEM_USER_EMAIL),
+		Auth:       application.NewAuthService(f.Hasher, f.TokenGenerator, f.Repos.UserRepo),
+		Deposit:    application.NewDepositService(f.Repos.AccountRepo, f.Repos.LedgerRepo, f.Repos.UserRepo, f.Repos.AtomicUnit, f.Config.SYSTEM_USER_EMAIL),
+		Conversion: application.NewConversionService(f.Repos.FxProvider, f.Repos.QuoteRepo),
 	}
 }
 
 func generateHandlers(f *Factory) *interfaces.Handlers {
 	return &interfaces.Handlers{
-		Auth:    interfaces.NewAuthHandler(*f.services.Auth),
-		Deposit: interfaces.NewDepositHandler(*f.services.Deposit),
+		Auth:       interfaces.NewAuthHandler(*f.services.Auth),
+		Deposit:    interfaces.NewDepositHandler(*f.services.Deposit),
+		Conversion: interfaces.NewConversionHandler(*f.services.Conversion),
 	}
 }
 

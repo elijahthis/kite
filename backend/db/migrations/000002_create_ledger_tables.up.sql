@@ -26,5 +26,18 @@ CREATE TABLE IF NOT EXISTS ledger_entries (
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS quotes (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+    source_currency VARCHAR(3) NOT NULL,
+    target_currency VARCHAR(3) NOT NULL,
+    provider_rate NUMERIC(15, 6) NOT NULL,
+    exchange_rate NUMERIC(15, 6) NOT NULL,
+    amount_in BIGINT NOT NULL,
+    amount_out BIGINT NOT NULL,
+    expires_at TIMESTAMPTZ NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE INDEX idx_accounts_user_id ON accounts(user_id);
 CREATE INDEX idx_ledger_entries_account_id ON ledger_entries(account_id);

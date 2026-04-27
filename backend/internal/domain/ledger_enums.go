@@ -17,6 +17,7 @@ const (
 const (
 	DEPOSIT TxnType = iota
 	PAYOUT
+	CONVERSION
 )
 const (
 	PENDING Status = iota
@@ -51,8 +52,9 @@ func (d Direction) String() string {
 
 func (t TxnType) String() string {
 	options := map[TxnType]string{
-		DEPOSIT: "DEPOSIT",
-		PAYOUT:  "PAYOUT",
+		DEPOSIT:    "DEPOSIT",
+		PAYOUT:     "PAYOUT",
+		CONVERSION: "CONVERSION",
 	}
 
 	return options[t]

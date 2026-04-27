@@ -50,7 +50,7 @@ func (ar *PostgresAccountRepo) Create(ctx context.Context, account *domain.Accou
 	return nil
 }
 
-func (ar *PostgresAccountRepo) GetByUserIdAndCurrency(ctx context.Context, userID uuid.UUID, currency domain.Currency) (*domain.Account, error) {
+func (ar *PostgresAccountRepo) GetByUserIDAndCurrency(ctx context.Context, userID uuid.UUID, currency domain.Currency) (*domain.Account, error) {
 	q := getQuerier(ctx, ar.db)
 	var dbAccount dbAccount
 

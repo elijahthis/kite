@@ -2,7 +2,6 @@ package application
 
 import (
 	"context"
-	"fmt"
 	"strings"
 
 	"github.com/elijahthis/kite/internal/domain"
@@ -30,17 +29,17 @@ func NewDepositService(ar domain.AccountRepository, lr domain.LedgerRepository, 
 func (ds *DepositService) ExecuteDeposit(ctx context.Context, userId uuid.UUID, currency domain.Currency, amount int64, reference string) error {
 
 	return ds.atomicUnit.Do(ctx, func(ctxWithTx context.Context) error {
-		sysUser, err := ds.userRepo.FindByEmail(ctx, ds.sysEmail)
+		sysUser, err := ds.userRepo.FindByEmail(ctxWithTx, ds.sysEmail)
 		if err != nil {
 			return err
 		}
 
-		userAcct, err := ds.getOrCreateAccount(ctx, userId, currency)
+		userAcct, err := ds.getOrCreateAccount(ctxWithTx, userId, currency)
 		if err != nil {
 			return err
 		}
 
-		systemAcct, err := ds.getOrCreateAccount(ctx, sysUser.ID, currency)
+		systemAcct, err := ds.getOrCreateAccount(ctxWithTx, sysUser.ID, currency)
 		if err != nil {
 			return err
 		}
@@ -53,7 +52,7 @@ func (ds *DepositService) ExecuteDeposit(ctx context.Context, userId uuid.UUID, 
 			return err
 		}
 
-		if err := ds.ledgerRepo.AppendTransaction(ctx, txn); err != nil {
+		if err := ds.ledgerRepo.AppendTransaction(ctxWithTx, txn); err != nil {
 			if strings.Contains(err.Error(), "unique constraint") || strings.Contains(err.Error(), "duplicate key") {
 				return domain.ErrDuplicateReference
 			}
@@ -66,22 +65,5 @@ func (ds *DepositService) ExecuteDeposit(ctx context.Context, userId uuid.UUID, 
 }
 
 func (ds *DepositService) getOrCreateAccount(ctx context.Context, ownerID uuid.UUID, currency domain.Currency) (*domain.Account, error) {
-	account, err := ds.accountRepo.GetByUserIdAndCurrency(ctx, ownerID, currency)
-	if err != nil {
-		return nil, fmt.Errorf("failed to verify account existence: %w", err)
-	}
-	if account != nil {
-		return account, nil
-	}
-
-	newAcct := &domain.Account{
-		UserID:   ownerID,
-		Currency: currency,
-	}
-
-	if err := ds.accountRepo.Create(ctx, newAcct); err != nil {
-		return nil, fmt.Errorf("failed to create new account: %w", err)
-	}
-
-	return newAcct, nil
+	return getOrCreateAccountUtil(ds.accountRepo, ctx, ownerID, currency)
 }

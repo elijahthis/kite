@@ -3,8 +3,9 @@ package interfaces
 import "net/http"
 
 type Handlers struct {
-	Auth    *AuthHandler
-	Deposit *DepositHandler
+	Auth       *AuthHandler
+	Deposit    *DepositHandler
+	Conversion *ConversionHandler
 }
 
 type Router struct {
@@ -27,6 +28,11 @@ func (r *Router) SetupRouter(h Handlers, jwtSecret string) http.Handler {
 
 	if h.Deposit != nil {
 		r.Router.HandleFunc("POST /api/v1/deposit", RequireAuth(jwtSecret)(h.Deposit.Create))
+	}
+
+	if h.Conversion != nil {
+		r.Router.HandleFunc("POST /api/v1/conversions/quote", RequireAuth(jwtSecret)(h.Conversion.GenerateQuote))
+		r.Router.HandleFunc("POST /api/v1/conversions/execute", RequireAuth(jwtSecret)(h.Conversion.ExecuteQuote))
 	}
 
 	// handler := corsMiddleware(r.Router)
