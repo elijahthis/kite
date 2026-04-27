@@ -29,7 +29,7 @@ func (r *Router) SetupRouter(h Handlers, jwtSecret string) http.Handler {
 	}
 
 	if h.Deposit != nil {
-		r.Router.HandleFunc("POST /api/v1/deposit", RequireAuth(jwtSecret)(h.Deposit.Create))
+		r.Router.HandleFunc("POST /api/v1/deposits", RequireAuth(jwtSecret)(h.Deposit.Create))
 	}
 
 	if h.Conversion != nil {
