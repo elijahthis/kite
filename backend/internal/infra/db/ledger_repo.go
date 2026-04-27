@@ -6,11 +6,17 @@ import (
 	"time"
 
 	"github.com/elijahthis/kite/internal/domain"
+	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 )
 
 type PostgresLedgerRepo struct {
 	db *sqlx.DB
+}
+
+type dbBalance struct {
+	Currency string `db:"currency"`
+	Balance  int64  `db:"balance"`
 }
 
 func NewPostgresLedgerRepo(db *sqlx.DB) *PostgresLedgerRepo {
@@ -72,4 +78,35 @@ func (r *PostgresLedgerRepo) GetAccountBalance(ctx context.Context, account *dom
 	}
 
 	return bal, nil
+}
+
+func (r *PostgresLedgerRepo) GetAllAccountBalances(ctx context.Context, userID uuid.UUID) (map[domain.Currency]int64, error) {
+	q := getQuerier(ctx, r.db)
+
+	query := `
+        SELECT a.currency, COALESCE(SUM(
+            CASE 
+                WHEN le.direction = 'CREDIT' THEN le.amount 
+                ELSE -le.amount 
+            END
+        ), 0) AS balance
+        FROM accounts a
+        LEFT JOIN ledger_entries le ON a.id = le.account_id
+        WHERE a.user_id = $1
+        GROUP BY a.currency;
+    `
+
+	var dbBalances []dbBalance
+	if err := q.SelectContext(ctx, &dbBalances, query, userID); err != nil {
+		return nil, fmt.Errorf("failed to query all balances: %w", err)
+	}
+
+	balances := make(map[domain.Currency]int64)
+	for _, dbb := range dbBalances {
+		if currency, ok := domain.GetCurrency(dbb.Currency); ok {
+			balances[currency] = dbb.Balance
+		}
+	}
+
+	return balances, nil
 }

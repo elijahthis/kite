@@ -81,27 +81,23 @@ func (tb *TransactionBuilder) IsValidAmount() bool {
 	return true
 }
 
-func (tb *TransactionBuilder) IsSameCurrency() bool {
-	base := tb.entries[0].Currency
+func (tb *TransactionBuilder) IsBalanced() bool {
+	balances := make(map[Currency]int64)
+
 	for _, entry := range tb.entries {
-		if entry.Currency != base {
+		if entry.Direction == CREDIT {
+			balances[entry.Currency] += entry.Amount
+		} else {
+			balances[entry.Currency] -= entry.Amount
+		}
+	}
+
+	for _, netBal := range balances {
+		if netBal != 0 {
 			return false
 		}
 	}
 	return true
-}
-
-func (tb *TransactionBuilder) IsBalanced() bool {
-	netBal := int64(0)
-	for _, entry := range tb.entries {
-		if entry.Direction == CREDIT {
-			netBal += entry.Amount
-		} else {
-			netBal -= entry.Amount
-		}
-	}
-
-	return netBal == 0
 }
 
 func (tb *TransactionBuilder) Build() (*Transaction, error) {
@@ -112,9 +108,7 @@ func (tb *TransactionBuilder) Build() (*Transaction, error) {
 	if !tb.IsValidAmount() {
 		return nil, ErrInvalidAmount
 	}
-	if !tb.IsSameCurrency() {
-		return nil, ErrCurrencyMismatch
-	}
+
 	if !tb.IsBalanced() {
 		return nil, ErrTransactionImbalance
 	}

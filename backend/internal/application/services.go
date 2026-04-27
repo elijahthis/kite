@@ -12,6 +12,7 @@ type Services struct {
 	Auth       *AuthService
 	Deposit    *DepositService
 	Conversion *ConversionService
+	Wallet     *WalletService
 }
 
 func getOrCreateAccountUtil(accountRepo domain.AccountRepository, ctx context.Context, ownerID uuid.UUID, currency domain.Currency) (*domain.Account, error) {

@@ -24,10 +24,23 @@ type ConversionService struct {
 	sysEmail    string
 }
 
-func NewConversionService(fx domain.FXRateProvider, qr domain.QuoteRepository) *ConversionService {
+func NewConversionService(
+	fx domain.FXRateProvider,
+	qr domain.QuoteRepository,
+	at domain.AtomicUnit,
+	ur domain.UserRepository,
+	ar domain.AccountRepository,
+	lr domain.LedgerRepository,
+	sysEmail string,
+) *ConversionService {
 	return &ConversionService{
-		fxProvider: fx,
-		quoteRepo:  qr,
+		fxProvider:  fx,
+		quoteRepo:   qr,
+		atomicUnit:  at,
+		userRepo:    ur,
+		accountRepo: ar,
+		ledgerRepo:  lr,
+		sysEmail:    sysEmail,
 	}
 }
 

@@ -30,6 +30,7 @@ const (
 	GBP
 	NGN
 	KES
+	EUR
 )
 
 func (a AccountType) String() string {
@@ -77,6 +78,7 @@ func (c Currency) String() string {
 		GBP: "GBP",
 		NGN: "NGN",
 		KES: "KES",
+		EUR: "EUR",
 	}
 
 	return options[c]

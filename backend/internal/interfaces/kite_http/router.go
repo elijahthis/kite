@@ -6,6 +6,7 @@ type Handlers struct {
 	Auth       *AuthHandler
 	Deposit    *DepositHandler
 	Conversion *ConversionHandler
+	Wallet     *WalletHandler
 }
 
 type Router struct {
@@ -33,6 +34,9 @@ func (r *Router) SetupRouter(h Handlers, jwtSecret string) http.Handler {
 	if h.Conversion != nil {
 		r.Router.HandleFunc("POST /api/v1/conversions/quote", RequireAuth(jwtSecret)(h.Conversion.GenerateQuote))
 		r.Router.HandleFunc("POST /api/v1/conversions/execute", RequireAuth(jwtSecret)(h.Conversion.ExecuteQuote))
+	}
+	if h.Wallet != nil {
+		r.Router.HandleFunc("GET /api/v1/balances", RequireAuth(jwtSecret)(h.Wallet.GetBalances))
 	}
 
 	// handler := corsMiddleware(r.Router)
