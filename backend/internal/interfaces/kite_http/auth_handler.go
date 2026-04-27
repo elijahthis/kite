@@ -10,7 +10,7 @@ import (
 )
 
 type AuthHandler struct {
-	service *application.AuthService
+	service application.AuthService
 }
 
 type LoginRequest struct {
@@ -26,14 +26,13 @@ type RegisterRequest struct {
 
 func NewAuthHandler(s application.AuthService) *AuthHandler {
 	return &AuthHandler{
-		service: &s,
+		service: s,
 	}
 }
 
 func (ah *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
-	var req RegisterRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		writeError(w, http.StatusBadRequest, "invalid_request", "Unable to parse request body", err)
+	req, ok := parseJSON[RegisterRequest](w, r)
+	if !ok {
 		return
 	}
 
@@ -55,9 +54,8 @@ func (ah *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 }
 
 func (ah *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
-	var req LoginRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		writeError(w, http.StatusBadRequest, "invalid_request", "Unable to parse request body", err)
+	req, ok := parseJSON[LoginRequest](w, r)
+	if !ok {
 		return
 	}
 

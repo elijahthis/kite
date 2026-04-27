@@ -9,7 +9,7 @@ import (
 )
 
 type DepositHandler struct {
-	service *application.DepositService
+	service application.DepositService
 }
 
 type DepositRequest struct {
@@ -20,7 +20,7 @@ type DepositRequest struct {
 
 func NewDepositHandler(s application.DepositService) *DepositHandler {
 	return &DepositHandler{
-		service: &s,
+		service: s,
 	}
 }
 

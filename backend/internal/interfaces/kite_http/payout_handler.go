@@ -9,11 +9,11 @@ import (
 )
 
 type PayoutHandler struct {
-	service *application.PayoutService
+	service application.PayoutService
 }
 
 func NewPayoutHandler(s application.PayoutService) *PayoutHandler {
-	return &PayoutHandler{service: &s}
+	return &PayoutHandler{service: s}
 }
 
 type PayoutRequest struct {

@@ -9,11 +9,11 @@ import (
 )
 
 type HistoryHandler struct {
-	service *application.HistoryService
+	service application.HistoryService
 }
 
 func NewHistoryHandler(s application.HistoryService) *HistoryHandler {
-	return &HistoryHandler{service: &s}
+	return &HistoryHandler{service: s}
 }
 
 func (h *HistoryHandler) GetHistory(w http.ResponseWriter, r *http.Request) {

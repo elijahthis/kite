@@ -8,11 +8,11 @@ import (
 )
 
 type WalletHandler struct {
-	service *application.WalletService
+	service application.WalletService
 }
 
 func NewWalletHandler(s application.WalletService) *WalletHandler {
-	return &WalletHandler{service: &s}
+	return &WalletHandler{service: s}
 }
 
 func (h *WalletHandler) GetBalances(w http.ResponseWriter, r *http.Request) {

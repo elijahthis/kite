@@ -10,11 +10,11 @@ import (
 )
 
 type ConversionHandler struct {
-	service *application.ConversionService
+	service application.ConversionService
 }
 
 func NewConversionHandler(s application.ConversionService) *ConversionHandler {
-	return &ConversionHandler{service: &s}
+	return &ConversionHandler{service: s}
 }
 
 type QuoteRequest struct {
