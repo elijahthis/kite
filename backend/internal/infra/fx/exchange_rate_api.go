@@ -11,7 +11,7 @@ import (
 	"github.com/elijahthis/kite/internal/domain"
 )
 
-const defaultAPIURL = "https://open.er-api.com/v6/latest/"
+const EXCHANGE_API_URL = "https://open.er-api.com/v6/latest/"
 
 type rateCacheItem struct {
 	rates     map[string]float64
@@ -48,7 +48,7 @@ func (p *ERAPIProvider) GetRate(ctx context.Context, source, target domain.Curre
 		}
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, defaultAPIURL+sourceStr, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, EXCHANGE_API_URL+sourceStr, nil)
 	if err != nil {
 		return 0, fmt.Errorf("failed to create fx request: %w", err)
 	}
