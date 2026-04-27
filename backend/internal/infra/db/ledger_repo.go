@@ -40,7 +40,7 @@ func (r *PostgresLedgerRepo) AppendTransaction(ctx context.Context, txn *domain.
 	`
 	for _, entry := range txn.Entries {
 		if err := q.QueryRowContext(ctx, entryQuery, entry.AccountID, entry.Amount, entry.Direction.String(), txn.ID, entry.Currency.String(), now).Scan(&entry.ID); err != nil {
-			return fmt.Errorf("failed to insert ledger entry", err)
+			return fmt.Errorf("failed to insert ledger entry %w", err)
 		}
 		entry.TxnId = txn.ID
 		entry.CreatedAt = now

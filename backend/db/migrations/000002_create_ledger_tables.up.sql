@@ -27,3 +27,4 @@ CREATE TABLE IF NOT EXISTS ledger_entries (
 );
 
 CREATE INDEX idx_accounts_user_id ON accounts(user_id);
+CREATE INDEX idx_ledger_entries_account_id ON ledger_entries(account_id);
