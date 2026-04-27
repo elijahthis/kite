@@ -35,7 +35,7 @@ func (r *PostgresLedgerRepo) AppendTransaction(ctx context.Context, txn *domain.
 	`
 
 	// insert txn
-	if err := q.QueryRowContext(ctx, txnQuery, txn.Type, txn.Status, txn.Reference, now).Scan(&txn.ID); err != nil {
+	if err := q.QueryRowContext(ctx, txnQuery, txn.Type.String(), txn.Status.String(), txn.Reference, now).Scan(&txn.ID); err != nil {
 		return fmt.Errorf("failed to insert transaction: %w", err)
 	}
 
