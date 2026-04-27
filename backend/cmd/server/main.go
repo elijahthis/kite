@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"net/http"
 	"os"
 	"time"
@@ -18,6 +19,10 @@ func main() {
 
 	if err := scripts.RunMigrations(f.Config.DB_MIGRATIONS_DIRECTORY, f.Config.DB_CONN_STR); err != nil {
 		log.Error().Err(err).Msg("Unable to run migrations")
+	}
+
+	if err := scripts.SeedAdminUser(context.Background(), f.DB, f.Config.SYSTEM_USER_EMAIL, f.Config.SYSTEM_USER_PASSWORD, f.Config.SYSTEM_USER_NAME); err != nil {
+		log.Error().Err(err).Msg("Unable to seed DB")
 	}
 
 	log.Info().Msgf("Server is listening on port %s\n", f.Config.PORT)

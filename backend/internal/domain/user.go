@@ -11,15 +11,16 @@ import (
 var (
 	ErrUserAlreadyExists  = errors.New("a user with this email already exists")
 	ErrInvalidCredentials = errors.New("invalid email or password")
+	ErrDuplicateReference = errors.New("a transaction with this reference already exists")
 )
 
 type User struct {
-	ID           uuid.UUID
-	FirstName    string
-	Email        string
-	PasswordHash string
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
+	ID           uuid.UUID `db:"id"`
+	FirstName    string    `db:"first_name"`
+	Email        string    `db:"email"`
+	PasswordHash string    `db:"password_hash"`
+	CreatedAt    time.Time `db:"created_at"`
+	UpdatedAt    time.Time `db:"updated_at"`
 }
 
 type AuthUseCase interface {

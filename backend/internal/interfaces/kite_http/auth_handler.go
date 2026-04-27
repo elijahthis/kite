@@ -7,7 +7,6 @@ import (
 
 	"github.com/elijahthis/kite/internal/application"
 	"github.com/elijahthis/kite/internal/domain"
-	"github.com/rs/zerolog/log"
 )
 
 type AuthHandler struct {
@@ -23,11 +22,6 @@ type RegisterRequest struct {
 	FirstName string `json:"first_name"`
 	Email     string `json:"email"`
 	Password  string `json:"password"`
-}
-
-type ErrorResponse struct {
-	Error   string `json:"error"`
-	Message string `json:"message"`
 }
 
 func NewAuthHandler(s application.AuthService) *AuthHandler {
@@ -89,11 +83,4 @@ func (ah *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]string{"status": "success"})
-}
-
-func writeError(w http.ResponseWriter, status int, errCode, msg string, err error) {
-	log.Error().Err(err).Msg(err.Error())
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(status)
-	json.NewEncoder(w).Encode(ErrorResponse{Error: errCode, Message: msg})
 }

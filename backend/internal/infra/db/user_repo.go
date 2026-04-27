@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/elijahthis/kite/internal/domain"
-	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -18,15 +17,6 @@ type PostgresUserRepo struct {
 
 func NewPostgresUserRepo(db *sqlx.DB) *PostgresUserRepo {
 	return &PostgresUserRepo{db: db}
-}
-
-type dbUser struct {
-	ID           uuid.UUID `db:"id"`
-	Email        string    `db:"email"`
-	PasswordHash string    `db:"password_hash"`
-	Firstname    string    `db:"first_name"`
-	CreatedAt    time.Time `db:"created_at"`
-	UpdatedAt    time.Time `db:"updated_at"`
 }
 
 func (r *PostgresUserRepo) Create(ctx context.Context, user *domain.User) error {
@@ -44,7 +34,7 @@ func (r *PostgresUserRepo) Create(ctx context.Context, user *domain.User) error 
 }
 
 func (r *PostgresUserRepo) FindByEmail(ctx context.Context, email string) (*domain.User, error) {
-	var dbUser dbUser
+	var dbUser domain.User
 
 	query := `
 		SELECT id, email, password_hash, first_name, created_at, created_at
@@ -57,12 +47,5 @@ func (r *PostgresUserRepo) FindByEmail(ctx context.Context, email string) (*doma
 		return nil, fmt.Errorf("failed to query user by email: %w", err)
 	}
 
-	return &domain.User{
-		ID:           dbUser.ID,
-		FirstName:    dbUser.Firstname,
-		Email:        dbUser.Email,
-		PasswordHash: dbUser.PasswordHash,
-		CreatedAt:    dbUser.CreatedAt,
-		UpdatedAt:    dbUser.UpdatedAt,
-	}, nil
+	return &dbUser, nil
 }

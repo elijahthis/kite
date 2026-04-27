@@ -3,7 +3,8 @@ package interfaces
 import "net/http"
 
 type Handlers struct {
-	Auth *AuthHandler
+	Auth    *AuthHandler
+	Deposit *DepositHandler
 }
 
 type Router struct {
@@ -18,10 +19,14 @@ func NewRouter() *Router {
 	}
 }
 
-func (r *Router) SetupRouter(h Handlers) http.Handler {
+func (r *Router) SetupRouter(h Handlers, jwtSecret string) http.Handler {
 	if h.Auth != nil {
 		r.Router.HandleFunc("POST /api/v1/auth/register", h.Auth.Register)
 		r.Router.HandleFunc("POST /api/v1/auth/login", h.Auth.Login)
+	}
+
+	if h.Deposit != nil {
+		r.Router.HandleFunc("POST /api/v1/deposit", RequireAuth(jwtSecret)(h.Deposit.Create))
 	}
 
 	// handler := corsMiddleware(r.Router)
@@ -29,22 +34,3 @@ func (r *Router) SetupRouter(h Handlers) http.Handler {
 	// return handler
 	return r.Router
 }
-
-func corsMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		// w.Header().Set("Access-Control-Allow-Origin", "http://localhost:5173")
-		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
-		w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, Authorization")
-		w.Header().Set("Access-Control-Allow-Credentials", "true")
-
-		if r.Method == http.MethodOptions {
-			w.WriteHeader(http.StatusOK)
-			return
-		}
-
-		next.ServeHTTP(w, r)
-	})
-}
-
-// will add logging middleware later

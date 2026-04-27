@@ -24,7 +24,9 @@ type Factory struct {
 }
 
 type Repos struct {
-	UserRepo domain.UserRepository
+	UserRepo    domain.UserRepository
+	AccountRepo domain.AccountRepository
+	LedgerRepo  domain.LedgerRepository
 }
 
 func NewFactory() *Factory {
@@ -57,9 +59,13 @@ func NewFactory() *Factory {
 
 func newRepos(dbx *sqlx.DB) *Repos {
 	userRepo := db.NewPostgresUserRepo(dbx)
+	accountRepo := db.NewPostgresAccountRepo(dbx)
+	ledgerRepo := db.NewPostgresLedgerRepo(dbx)
 
 	return &Repos{
-		UserRepo: userRepo,
+		UserRepo:    userRepo,
+		AccountRepo: accountRepo,
+		LedgerRepo:  ledgerRepo,
 	}
 }
 
@@ -73,19 +79,21 @@ func newTokenGenerator(secretKey string) domain.TokenGenerator {
 
 func generateServices(f *Factory) *application.Services {
 	return &application.Services{
-		Auth: application.NewAuthService(f.Hasher, f.TokenGenerator, f.Repos.UserRepo),
+		Auth:    application.NewAuthService(f.Hasher, f.TokenGenerator, f.Repos.UserRepo),
+		Deposit: application.NewDepositService(f.Repos.AccountRepo, f.Repos.LedgerRepo, f.Repos.UserRepo, f.Config.SYSTEM_USER_EMAIL),
 	}
 }
 
 func generateHandlers(f *Factory) *interfaces.Handlers {
 	return &interfaces.Handlers{
-		Auth: interfaces.NewAuthHandler(*f.services.Auth),
+		Auth:    interfaces.NewAuthHandler(*f.services.Auth),
+		Deposit: interfaces.NewDepositHandler(*f.services.Deposit),
 	}
 }
 
 func newRouter(f *Factory) *interfaces.Router {
 	r := interfaces.NewRouter()
-	r.SetupRouter(*f.handlers)
+	r.SetupRouter(*f.handlers, f.Config.JWT_SECRET_KEY)
 
 	return r
 }

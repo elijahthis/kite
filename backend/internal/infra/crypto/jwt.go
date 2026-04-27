@@ -21,7 +21,7 @@ func NewJWTTokenGenerator(secretKey string) *JWTTokenGenerator {
 func (t *JWTTokenGenerator) GenerateToken(userID uuid.UUID) (string, error) {
 	claims := jwt.RegisteredClaims{
 		Subject:   userID.String(),
-		ExpiresAt: jwt.NewNumericDate(time.Now().Add(15 * time.Minute)),
+		ExpiresAt: jwt.NewNumericDate(time.Now().Add(30 * time.Minute)),
 		IssuedAt:  jwt.NewNumericDate(time.Now()),
 	}
 

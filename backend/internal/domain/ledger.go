@@ -16,11 +16,10 @@ var (
 )
 
 type Account struct {
-	// accountType AccountType
 	ID        uuid.UUID
-	userID    uuid.UUID
-	currency  Currency
-	createdAt time.Time
+	UserID    uuid.UUID
+	Currency  Currency
+	CreatedAt time.Time
 	UpdatedAt time.Time
 }
 
@@ -28,7 +27,7 @@ type LedgerEntry struct {
 	ID        uuid.UUID
 	AccountID uuid.UUID
 	TxnId     uuid.UUID
-	Amount    int
+	Amount    int64
 	Direction Direction
 	Currency  Currency
 	CreatedAt time.Time
@@ -64,7 +63,7 @@ func NewTransactionBuilder(txnType TxnType, status Status, reference string) *Tr
 	}
 }
 
-func (tb *TransactionBuilder) AddEntry(accountID uuid.UUID, amount int, direction Direction, currency Currency) {
+func (tb *TransactionBuilder) AddEntry(accountID uuid.UUID, amount int64, direction Direction, currency Currency) {
 	entry := LedgerEntry{
 		AccountID: accountID,
 		Amount:    amount,
@@ -94,7 +93,7 @@ func (tb *TransactionBuilder) IsSameCurrency() bool {
 }
 
 func (tb *TransactionBuilder) IsBalanced() bool {
-	netBal := 0
+	netBal := int64(0)
 	for _, entry := range tb.entries {
 		if entry.Direction == CREDIT {
 			netBal += entry.Amount
@@ -135,6 +134,6 @@ type AccountRepository interface {
 	GetByUserIdAndCurrency(ctx context.Context, userID uuid.UUID, currency Currency) (*Account, error)
 }
 type LedgerRepository interface {
-	AppendTransaction(ctx context.Context, transaction *Transaction) error
+	AppendTransaction(ctx context.Context, txn *Transaction) error
 	GetAccountBalance(ctx context.Context, account *Account) (int64, error)
 }

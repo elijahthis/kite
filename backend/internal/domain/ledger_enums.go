@@ -21,7 +21,7 @@ const (
 const (
 	PENDING Status = iota
 	PROCESSING
-	SUCCESSFUL
+	SUCCESS
 	FAILED
 )
 const (
@@ -62,7 +62,7 @@ func (s Status) String() string {
 	options := map[Status]string{
 		PENDING:    "PENDING",
 		PROCESSING: "PROCESSING",
-		SUCCESSFUL: "SUCCESSFUL",
+		SUCCESS:    "SUCCESS",
 		FAILED:     "FAILED",
 	}
 
@@ -78,4 +78,15 @@ func (c Currency) String() string {
 	}
 
 	return options[c]
+}
+func GetCurrency(s string) (Currency, bool) {
+	options := map[string]Currency{
+		"USD": USD,
+		"GBP": GBP,
+		"NGN": NGN,
+		"KES": KES,
+	}
+	currency, ok := options[s]
+
+	return currency, ok
 }

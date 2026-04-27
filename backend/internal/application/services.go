@@ -1,5 +1,6 @@
 package application
 
 type Services struct {
-	Auth *AuthService
+	Auth    *AuthService
+	Deposit *DepositService
 }

@@ -10,16 +10,22 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-type PostgresAccountRepo struct {
+type PostgresLedgerRepo struct {
 	db *sqlx.DB
 }
 
-func (r *PostgresAccountRepo) AppendTransaction(ctx context.Context, txn *domain.Transaction) error {
-	now := time.Now()
+func NewPostgresLedgerRepo(db *sqlx.DB) *PostgresLedgerRepo {
+	return &PostgresLedgerRepo{
+		db: db,
+	}
+}
+
+func (r *PostgresLedgerRepo) AppendTransaction(ctx context.Context, txn *domain.Transaction) error {
+	now := time.Now().UTC()
 	txnQuery := `
 		INSERT INTO transactions(type, status, reference, created_at, updated_at)
 		VALUES($1, $2, $3, $4, $4)
-		RETURNING id
+		RETURNING id;
 	`
 
 	// begin txn
@@ -34,9 +40,9 @@ func (r *PostgresAccountRepo) AppendTransaction(ctx context.Context, txn *domain
 	}
 
 	entryQuery := `
-		INSERT INTO ledger_entries(account_id, amount, direction, tx_id, currency, created_at)
-		VALUES($1, $2, $3, $4, $5, 6)
-		RETURNING id
+		INSERT INTO ledger_entries(account_id, amount, direction, transaction_id, currency, created_at)
+		VALUES($1, $2, $3, $4, $5, $6)
+		RETURNING id;
 	`
 	for _, entry := range txn.Entries {
 		if err := tx.QueryRowContext(ctx, entryQuery, entry.AccountID, entry.Amount, entry.Direction.String(), txn.ID, entry.Currency.String(), now).Scan(&entry.ID); err != nil {
@@ -56,5 +62,6 @@ func (r *PostgresAccountRepo) AppendTransaction(ctx context.Context, txn *domain
 	return nil
 }
 
-// func (r *PostgresAccountRepo) GetAccountBalance(ctx context.Context, account *Account) (int64, error) {
-// }
+func (r *PostgresLedgerRepo) GetAccountBalance(ctx context.Context, account *domain.Account) (int64, error) {
+	return 0, nil
+}

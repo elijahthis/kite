@@ -12,6 +12,10 @@ type Config struct {
 	DB_MIGRATIONS_DIRECTORY string
 	JWT_SECRET_KEY          string
 	PORT                    string
+
+	SYSTEM_USER_NAME     string
+	SYSTEM_USER_EMAIL    string
+	SYSTEM_USER_PASSWORD string
 }
 
 func LoadConfig() *Config {
@@ -40,10 +44,28 @@ func LoadConfig() *Config {
 		PORT = "8080"
 	}
 
+	SYSTEM_USER_NAME, exists := os.LookupEnv("SYSTEM_USER_NAME")
+	if !exists {
+		log.Fatal().Msg("SYSTEM_USER_NAME is missing from env")
+	}
+
+	SYSTEM_USER_EMAIL, exists := os.LookupEnv("SYSTEM_USER_EMAIL")
+	if !exists {
+		log.Fatal().Msg("SYSTEM_USER_EMAIL is missing from env")
+	}
+
+	SYSTEM_USER_PASSWORD, exists := os.LookupEnv("SYSTEM_USER_PASSWORD")
+	if !exists {
+		log.Fatal().Msg("SYSTEM_USER_PASSWORD is missing from env")
+	}
+
 	return &Config{
 		DB_CONN_STR:             DB_CONN_STR,
 		DB_MIGRATIONS_DIRECTORY: DB_MIGRATIONS_DIRECTORY,
 		JWT_SECRET_KEY:          JWT_SECRET_KEY,
 		PORT:                    PORT,
+		SYSTEM_USER_NAME:        SYSTEM_USER_NAME,
+		SYSTEM_USER_EMAIL:       SYSTEM_USER_EMAIL,
+		SYSTEM_USER_PASSWORD:    SYSTEM_USER_PASSWORD,
 	}
 }
