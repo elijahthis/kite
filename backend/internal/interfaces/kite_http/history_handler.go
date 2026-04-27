@@ -6,7 +6,6 @@ import (
 	"strconv"
 
 	"github.com/elijahthis/kite/internal/application"
-	"github.com/google/uuid"
 )
 
 type HistoryHandler struct {
@@ -18,9 +17,8 @@ func NewHistoryHandler(s application.HistoryService) *HistoryHandler {
 }
 
 func (h *HistoryHandler) GetHistory(w http.ResponseWriter, r *http.Request) {
-	userID, ok := r.Context().Value(UserIDKey).(uuid.UUID)
+	userID, ok := getUserIDFromContext(w, r)
 	if !ok {
-		writeError(w, http.StatusInternalServerError, "server_error", "Failed to identify user", nil)
 		return
 	}
 

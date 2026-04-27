@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/elijahthis/kite/internal/application"
-	"github.com/google/uuid"
 )
 
 type WalletHandler struct {
@@ -17,9 +16,8 @@ func NewWalletHandler(s application.WalletService) *WalletHandler {
 }
 
 func (h *WalletHandler) GetBalances(w http.ResponseWriter, r *http.Request) {
-	userID, ok := r.Context().Value(UserIDKey).(uuid.UUID)
+	userID, ok := getUserIDFromContext(w, r)
 	if !ok {
-		writeError(w, http.StatusInternalServerError, "server_error", "Failed to identify user", nil)
 		return
 	}
 

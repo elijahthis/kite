@@ -64,15 +64,13 @@ func (h *ConversionHandler) GenerateQuote(w http.ResponseWriter, r *http.Request
 }
 
 func (h *ConversionHandler) ExecuteQuote(w http.ResponseWriter, r *http.Request) {
-	userID, ok := r.Context().Value(UserIDKey).(uuid.UUID)
+	userID, ok := getUserIDFromContext(w, r)
 	if !ok {
-		writeError(w, http.StatusInternalServerError, "server_error", "Failed to identify user", nil)
 		return
 	}
 
-	var req ExecuteRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		writeError(w, http.StatusBadRequest, "invalid_request", "Unable to parse request body", err)
+	req, ok := parseJSON[ExecuteRequest](w, r)
+	if !ok {
 		return
 	}
 
