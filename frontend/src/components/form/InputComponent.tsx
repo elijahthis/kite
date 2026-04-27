@@ -1,6 +1,6 @@
 import type { ChangeEvent } from "react";
 
-interface InputComponent {
+interface InputComponentProps {
 	value: string;
 	setValue: (val: string) => void;
 	label: string;
@@ -14,7 +14,7 @@ const InputComponent = ({
 	label,
 	type,
 	required,
-}: InputComponent) => {
+}: InputComponentProps) => {
 	return (
 		<label className="block text-sm font-medium text-gray-700 mb-1">
 			{label}

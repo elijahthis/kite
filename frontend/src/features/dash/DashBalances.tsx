@@ -1,6 +1,7 @@
 import DashBanner from "../../components/dash/DashBanner";
 import DashCard from "../../components/dash/DashCard";
 import { H2 } from "../../components/headings";
+import SkeletonLoader from "../../components/SkeletonLoader";
 import { useBalances } from "../../hooks/useDashboardQueries";
 import { formatCurrency } from "../../utils";
 
@@ -14,10 +15,7 @@ const DashBalances = () => {
 		<section>
 			<H2>Your Wallets</H2>
 			{loadingBalances ? (
-				<div className="animate-pulse flex space-x-4 mt-4">
-					<div className="h-24 bg-gray-200 rounded w-1/4"></div>
-					<div className="h-24 bg-gray-200 rounded w-1/4"></div>
-				</div>
+				<SkeletonLoader skeletonClass="h-24 bg-gray-200 rounded w-1/4" />
 			) : errorBalances ? (
 				<DashBanner>Failed to load balances.</DashBanner>
 			) : (

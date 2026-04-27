@@ -91,6 +91,7 @@ func GetCurrency(s string) (Currency, bool) {
 		"GBP": GBP,
 		"NGN": NGN,
 		"KES": KES,
+		"EUR": EUR,
 	}
 	currency, ok := options[s]
 

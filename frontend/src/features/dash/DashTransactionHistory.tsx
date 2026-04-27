@@ -1,5 +1,6 @@
 import DashBanner from "../../components/dash/DashBanner";
 import { H2 } from "../../components/headings";
+import SkeletonLoader from "../../components/SkeletonLoader";
 import { useTransactionHistory } from "../../hooks/useDashboardQueries";
 import { formatCurrency } from "../../utils";
 
@@ -14,10 +15,7 @@ const DashTransactionHistory = () => {
 		<section>
 			<H2>Recent Transactions</H2>
 			{loadingTxns ? (
-				<div className="mt-4 space-y-3 animate-pulse">
-					<div className="h-10 bg-gray-200 rounded w-full"></div>
-					<div className="h-10 bg-gray-200 rounded w-full"></div>
-				</div>
+				<SkeletonLoader />
 			) : errorTxns ? (
 				<DashBanner>Failed to load transaction history.</DashBanner>
 			) : (
