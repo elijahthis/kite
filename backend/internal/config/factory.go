@@ -27,6 +27,7 @@ type Repos struct {
 	UserRepo    domain.UserRepository
 	AccountRepo domain.AccountRepository
 	LedgerRepo  domain.LedgerRepository
+	AtomicUnit  domain.AtomicUnit
 }
 
 func NewFactory() *Factory {
@@ -61,11 +62,13 @@ func newRepos(dbx *sqlx.DB) *Repos {
 	userRepo := db.NewPostgresUserRepo(dbx)
 	accountRepo := db.NewPostgresAccountRepo(dbx)
 	ledgerRepo := db.NewPostgresLedgerRepo(dbx)
+	atomicUnit := db.NewAtomicUnit(dbx)
 
 	return &Repos{
 		UserRepo:    userRepo,
 		AccountRepo: accountRepo,
 		LedgerRepo:  ledgerRepo,
+		AtomicUnit:  atomicUnit,
 	}
 }
 
@@ -80,7 +83,7 @@ func newTokenGenerator(secretKey string) domain.TokenGenerator {
 func generateServices(f *Factory) *application.Services {
 	return &application.Services{
 		Auth:    application.NewAuthService(f.Hasher, f.TokenGenerator, f.Repos.UserRepo),
-		Deposit: application.NewDepositService(f.Repos.AccountRepo, f.Repos.LedgerRepo, f.Repos.UserRepo, f.Config.SYSTEM_USER_EMAIL),
+		Deposit: application.NewDepositService(f.Repos.AccountRepo, f.Repos.LedgerRepo, f.Repos.UserRepo, f.Repos.AtomicUnit, f.Config.SYSTEM_USER_EMAIL),
 	}
 }
 

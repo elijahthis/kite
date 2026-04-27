@@ -2,7 +2,6 @@ package db
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"time"
 
@@ -21,6 +20,7 @@ func NewPostgresLedgerRepo(db *sqlx.DB) *PostgresLedgerRepo {
 }
 
 func (r *PostgresLedgerRepo) AppendTransaction(ctx context.Context, txn *domain.Transaction) error {
+	q := getQuerier(ctx, r.db)
 	now := time.Now().UTC()
 	txnQuery := `
 		INSERT INTO transactions(type, status, reference, created_at, updated_at)
@@ -28,14 +28,8 @@ func (r *PostgresLedgerRepo) AppendTransaction(ctx context.Context, txn *domain.
 		RETURNING id;
 	`
 
-	// begin txn
-	tx, err := r.db.BeginTxx(ctx, &sql.TxOptions{Isolation: sql.LevelReadCommitted})
-	if err != nil {
-		return fmt.Errorf("failed to begin transaction: %w", err)
-	}
-
-	// insert tx
-	if err := tx.QueryRowContext(ctx, txnQuery, txn.Type, txn.Status, txn.Reference, now).Scan(&txn.ID); err != nil {
+	// insert txn
+	if err := q.QueryRowContext(ctx, txnQuery, txn.Type, txn.Status, txn.Reference, now).Scan(&txn.ID); err != nil {
 		return fmt.Errorf("failed to insert transaction: %w", err)
 	}
 
@@ -45,15 +39,11 @@ func (r *PostgresLedgerRepo) AppendTransaction(ctx context.Context, txn *domain.
 		RETURNING id;
 	`
 	for _, entry := range txn.Entries {
-		if err := tx.QueryRowContext(ctx, entryQuery, entry.AccountID, entry.Amount, entry.Direction.String(), txn.ID, entry.Currency.String(), now).Scan(&entry.ID); err != nil {
+		if err := q.QueryRowContext(ctx, entryQuery, entry.AccountID, entry.Amount, entry.Direction.String(), txn.ID, entry.Currency.String(), now).Scan(&entry.ID); err != nil {
 			return fmt.Errorf("failed to insert ledger entry", err)
 		}
 		entry.TxnId = txn.ID
 		entry.CreatedAt = now
-	}
-
-	if err := tx.Commit(); err != nil {
-		return fmt.Errorf("failed to commit transaction: %w", err)
 	}
 
 	txn.CreatedAt = now
@@ -63,5 +53,23 @@ func (r *PostgresLedgerRepo) AppendTransaction(ctx context.Context, txn *domain.
 }
 
 func (r *PostgresLedgerRepo) GetAccountBalance(ctx context.Context, account *domain.Account) (int64, error) {
-	return 0, nil
+	q := getQuerier(ctx, r.db)
+
+	query := `
+		SELECT COALESCE(SUM(
+			CASE 
+                WHEN direction = 'CREDIT' THEN amount 
+                ELSE -amount 
+            END
+		), 0) 
+		FROM ledger_entries
+		WHERE account_id=$1
+	`
+
+	var bal int64
+	if err := q.GetContext(ctx, &bal, query, account.ID); err != nil {
+		return 0, fmt.Errorf("failed to calculate balance: %w", err)
+	}
+
+	return bal, nil
 }

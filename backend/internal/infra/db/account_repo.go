@@ -31,14 +31,16 @@ func NewPostgresAccountRepo(db *sqlx.DB) *PostgresAccountRepo {
 }
 
 func (ar *PostgresAccountRepo) Create(ctx context.Context, account *domain.Account) error {
+	q := getQuerier(ctx, ar.db)
 	now := time.Now().UTC()
+
 	query := `
 		INSERT INTO accounts(user_id, currency, created_at, updated_at)
 		VALUES ($1, $2, $3, $3)
 		RETURNING id;
 	`
 
-	if err := ar.db.QueryRowContext(ctx, query, account.UserID, account.Currency.String(), now).Scan(&account.ID); err != nil {
+	if err := q.QueryRowContext(ctx, query, account.UserID, account.Currency.String(), now).Scan(&account.ID); err != nil {
 		return fmt.Errorf("failed to create account: %w", err)
 	}
 
@@ -49,6 +51,7 @@ func (ar *PostgresAccountRepo) Create(ctx context.Context, account *domain.Accou
 }
 
 func (ar *PostgresAccountRepo) GetByUserIdAndCurrency(ctx context.Context, userID uuid.UUID, currency domain.Currency) (*domain.Account, error) {
+	q := getQuerier(ctx, ar.db)
 	var dbAccount dbAccount
 
 	query := `
@@ -57,7 +60,7 @@ func (ar *PostgresAccountRepo) GetByUserIdAndCurrency(ctx context.Context, userI
 		WHERE user_id=$1 AND currency=$2;
 	`
 
-	if err := ar.db.QueryRowContext(ctx, query, userID, currency.String()).Scan(&dbAccount.ID, &dbAccount.UserID, &dbAccount.Currency, &dbAccount.CreatedAt, &dbAccount.UpdatedAt); err != nil {
+	if err := q.QueryRowContext(ctx, query, userID, currency.String()).Scan(&dbAccount.ID, &dbAccount.UserID, &dbAccount.Currency, &dbAccount.CreatedAt, &dbAccount.UpdatedAt); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
 		}

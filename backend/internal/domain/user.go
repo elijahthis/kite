@@ -36,8 +36,3 @@ type PasswordHasher interface {
 type TokenGenerator interface {
 	GenerateToken(userID uuid.UUID) (string, error)
 }
-
-type UserRepository interface {
-	Create(ctx context.Context, user *User) error
-	FindByEmail(ctx context.Context, email string) (*User, error)
-}

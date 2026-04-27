@@ -1,7 +1,6 @@
 package domain
 
 import (
-	"context"
 	"errors"
 	"time"
 
@@ -126,14 +125,4 @@ func (tb *TransactionBuilder) Build() (*Transaction, error) {
 		Status:    tb.status,
 		Reference: tb.reference,
 	}, nil
-}
-
-// repos
-type AccountRepository interface {
-	Create(ctx context.Context, account *Account) error
-	GetByUserIdAndCurrency(ctx context.Context, userID uuid.UUID, currency Currency) (*Account, error)
-}
-type LedgerRepository interface {
-	AppendTransaction(ctx context.Context, txn *Transaction) error
-	GetAccountBalance(ctx context.Context, account *Account) (int64, error)
 }
