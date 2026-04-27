@@ -98,22 +98,22 @@ func (s *ConversionService) ExecuteQuote(ctx context.Context, userID uuid.UUID, 
 			return fmt.Errorf("system user not found: %w", err)
 		}
 
-		userSourceAcct, err := s.getOrCreateAccount(ctxWithTx, userID, quote.SourceCurrency)
+		userSourceAcct, err := getOrCreateAccountUtil(s.accountRepo, ctxWithTx, userID, quote.SourceCurrency)
 		if err != nil {
 			return err
 		}
 
-		userTargetAcct, err := s.getOrCreateAccount(ctxWithTx, userID, quote.TargetCurrency)
+		userTargetAcct, err := getOrCreateAccountUtil(s.accountRepo, ctxWithTx, userID, quote.TargetCurrency)
 		if err != nil {
 			return err
 		}
 
-		sysSourceAcct, err := s.getOrCreateAccount(ctxWithTx, sysUser.ID, quote.SourceCurrency)
+		sysSourceAcct, err := getOrCreateAccountUtil(s.accountRepo, ctxWithTx, sysUser.ID, quote.SourceCurrency)
 		if err != nil {
 			return err
 		}
 
-		sysTargetAcct, err := s.getOrCreateAccount(ctxWithTx, sysUser.ID, quote.TargetCurrency)
+		sysTargetAcct, err := getOrCreateAccountUtil(s.accountRepo, ctxWithTx, sysUser.ID, quote.TargetCurrency)
 		if err != nil {
 			return err
 		}
@@ -150,8 +150,4 @@ func (s *ConversionService) ExecuteQuote(ctx context.Context, userID uuid.UUID, 
 
 		return nil
 	})
-}
-
-func (s *ConversionService) getOrCreateAccount(ctx context.Context, ownerID uuid.UUID, currency domain.Currency) (*domain.Account, error) {
-	return getOrCreateAccountUtil(s.accountRepo, ctx, ownerID, currency)
 }

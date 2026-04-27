@@ -34,12 +34,12 @@ func (ds *DepositService) ExecuteDeposit(ctx context.Context, userId uuid.UUID, 
 			return err
 		}
 
-		userAcct, err := ds.getOrCreateAccount(ctxWithTx, userId, currency)
+		userAcct, err := getOrCreateAccountUtil(ds.accountRepo, ctxWithTx, userId, currency)
 		if err != nil {
 			return err
 		}
 
-		systemAcct, err := ds.getOrCreateAccount(ctxWithTx, sysUser.ID, currency)
+		systemAcct, err := getOrCreateAccountUtil(ds.accountRepo, ctxWithTx, sysUser.ID, currency)
 		if err != nil {
 			return err
 		}
@@ -62,8 +62,4 @@ func (ds *DepositService) ExecuteDeposit(ctx context.Context, userId uuid.UUID, 
 		return nil
 	})
 
-}
-
-func (ds *DepositService) getOrCreateAccount(ctx context.Context, ownerID uuid.UUID, currency domain.Currency) (*domain.Account, error) {
-	return getOrCreateAccountUtil(ds.accountRepo, ctx, ownerID, currency)
 }

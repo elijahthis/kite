@@ -33,7 +33,7 @@ func (ps *PayoutService) ExecutePayout(ctx context.Context, userID uuid.UUID, cu
 	var payoutTxn *domain.Transaction
 
 	err := ps.atomicUnit.Do(ctx, func(ctxWithTx context.Context) error {
-		userAcct, err := ps.getOrCreateAccount(ctxWithTx, userID, currency)
+		userAcct, err := getOrCreateAccountUtil(ps.accountRepo, ctxWithTx, userID, currency)
 		if err != nil {
 			return err
 		}
@@ -50,7 +50,7 @@ func (ps *PayoutService) ExecutePayout(ctx context.Context, userID uuid.UUID, cu
 		if err != nil {
 			return err
 		}
-		systemAcct, err := ps.getOrCreateAccount(ctxWithTx, sysUser.ID, currency)
+		systemAcct, err := getOrCreateAccountUtil(ps.accountRepo, ctxWithTx, sysUser.ID, currency)
 		if err != nil {
 			return err
 		}
@@ -100,9 +100,9 @@ func (ps *PayoutService) simulateBank(ctx context.Context, txnID, userID uuid.UU
 
 func (ps *PayoutService) executeReversal(ctx context.Context, originalTxnID, userID uuid.UUID, amount int64, currency domain.Currency) {
 	_ = ps.atomicUnit.Do(ctx, func(ctxWithTx context.Context) error {
-		userAcct, _ := ps.getOrCreateAccount(ctxWithTx, userID, currency)
+		userAcct, _ := getOrCreateAccountUtil(ps.accountRepo, ctxWithTx, userID, currency)
 		sysUser, _ := ps.userRepo.FindByEmail(ctxWithTx, ps.sysEmail)
-		systemAcct, _ := ps.getOrCreateAccount(ctxWithTx, sysUser.ID, currency)
+		systemAcct, _ := getOrCreateAccountUtil(ps.accountRepo, ctxWithTx, sysUser.ID, currency)
 
 		// reversal linked to via original reference
 		reference := fmt.Sprintf("REVERSAL-%s", originalTxnID.String())
@@ -114,8 +114,4 @@ func (ps *PayoutService) executeReversal(ctx context.Context, originalTxnID, use
 		txn, _ := builder.Build()
 		return ps.ledgerRepo.AppendTransaction(ctxWithTx, txn)
 	})
-}
-
-func (ps *PayoutService) getOrCreateAccount(ctx context.Context, ownerID uuid.UUID, currency domain.Currency) (*domain.Account, error) {
-	return getOrCreateAccountUtil(ps.accountRepo, ctx, ownerID, currency)
 }
