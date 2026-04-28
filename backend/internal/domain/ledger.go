@@ -10,7 +10,6 @@ import (
 var (
 	ErrEmptyTransaction     = errors.New("A transaction must contain at least 2 entries")
 	ErrInvalidAmount        = errors.New("amount must be positive")
-	ErrCurrencyMismatch     = errors.New("ledger entries within a transaction must share the same currency")
 	ErrTransactionImbalance = errors.New("critical: ledger entries in tis transaction are not balanced")
 )
 
