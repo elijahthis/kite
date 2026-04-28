@@ -18,6 +18,7 @@ type UserRepository interface {
 type AccountRepository interface {
 	Create(ctx context.Context, account *Account) error
 	GetByUserIDAndCurrency(ctx context.Context, userID uuid.UUID, currency Currency) (*Account, error)
+	LockAccount(ctx context.Context, accountID uuid.UUID) error
 }
 type LedgerRepository interface {
 	AppendTransaction(ctx context.Context, txn *Transaction) error

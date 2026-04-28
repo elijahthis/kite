@@ -80,3 +80,16 @@ func (ar *PostgresAccountRepo) GetByUserIDAndCurrency(ctx context.Context, userI
 		UpdatedAt: dbAccount.UpdatedAt,
 	}, nil
 }
+
+func (ar *PostgresAccountRepo) LockAccount(ctx context.Context, accountID uuid.UUID) error {
+	q := getQuerier(ctx, ar.db)
+
+	query := `SELECT id FROM accounts WHERE id = $1 FOR UPDATE`
+
+	var lockedID uuid.UUID
+	if err := q.QueryRowContext(ctx, query, accountID).Scan(&lockedID); err != nil {
+		return fmt.Errorf("failed to lock account for update: %w", err)
+	}
+
+	return nil
+}

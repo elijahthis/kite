@@ -118,6 +118,10 @@ func (s *ConversionService) ExecuteQuote(ctx context.Context, userID uuid.UUID, 
 			return err
 		}
 
+		if err := s.LockInOrder(ctxWithTx, userSourceAcct.ID, userTargetAcct.ID); err != nil {
+			return err
+		}
+
 		currentBalance, err := s.ledgerRepo.GetAccountBalance(ctxWithTx, userSourceAcct)
 		if err != nil {
 			return err
@@ -128,13 +132,12 @@ func (s *ConversionService) ExecuteQuote(ctx context.Context, userID uuid.UUID, 
 
 		builder := domain.NewTransactionBuilder(domain.CONVERSION, domain.SUCCESS, quote.ID.String())
 
-		// User to System
-		builder.AddEntry(userSourceAcct.ID, quote.AmountIn, domain.DEBIT, quote.SourceCurrency)
-		builder.AddEntry(sysSourceAcct.ID, quote.AmountIn, domain.CREDIT, quote.SourceCurrency)
-
-		// System to User
-		builder.AddEntry(sysTargetAcct.ID, quote.AmountOut, domain.DEBIT, quote.TargetCurrency)
-		builder.AddEntry(userTargetAcct.ID, quote.AmountOut, domain.CREDIT, quote.TargetCurrency)
+		s.addEntriesToBuilder(builder,
+			quote.AmountIn, quote.AmountOut,
+			quote.SourceCurrency, quote.TargetCurrency,
+			userSourceAcct.ID, userTargetAcct.ID,
+			sysSourceAcct.ID, sysTargetAcct.ID,
+		)
 
 		txn, err := builder.Build()
 		if err != nil {
@@ -150,4 +153,33 @@ func (s *ConversionService) ExecuteQuote(ctx context.Context, userID uuid.UUID, 
 
 		return nil
 	})
+}
+
+func (s *ConversionService) addEntriesToBuilder(builder *domain.TransactionBuilder, amountIn, amountOut int64, sourceCurrency, targetCurrency domain.Currency, userSourceAcctID, userTargetAcctID, sysSourceAcctID, sysTargetAcctID uuid.UUID) {
+	// User to System
+	builder.AddEntry(userSourceAcctID, amountIn, domain.DEBIT, sourceCurrency)
+	builder.AddEntry(sysSourceAcctID, amountIn, domain.CREDIT, sourceCurrency)
+
+	// System to User
+	builder.AddEntry(sysTargetAcctID, amountOut, domain.DEBIT, targetCurrency)
+	builder.AddEntry(userTargetAcctID, amountOut, domain.CREDIT, targetCurrency)
+}
+
+func (s *ConversionService) LockInOrder(ctxWithTx context.Context, userSourceAcctID, userTargetAcctID uuid.UUID) error {
+	if userSourceAcctID.String() < userTargetAcctID.String() {
+		if err := s.accountRepo.LockAccount(ctxWithTx, userSourceAcctID); err != nil {
+			return err
+		}
+		if err := s.accountRepo.LockAccount(ctxWithTx, userTargetAcctID); err != nil {
+			return err
+		}
+	} else {
+		if err := s.accountRepo.LockAccount(ctxWithTx, userTargetAcctID); err != nil {
+			return err
+		}
+		if err := s.accountRepo.LockAccount(ctxWithTx, userSourceAcctID); err != nil {
+			return err
+		}
+	}
+	return nil
 }

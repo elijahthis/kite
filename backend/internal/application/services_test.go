@@ -79,6 +79,7 @@ func (m *mockAccountRepo) Create(ctx context.Context, account *domain.Account) e
 func (m *mockAccountRepo) GetByUserIDAndCurrency(ctx context.Context, userID uuid.UUID, currency domain.Currency) (*domain.Account, error) {
 	return &domain.Account{ID: uuid.New(), UserID: userID, Currency: currency}, nil
 }
+func (m *mockAccountRepo) LockAccount(ctx context.Context, accountID uuid.UUID) error { return nil }
 
 type mockQuoteRepo struct {
 	quote *domain.Quote

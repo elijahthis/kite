@@ -127,6 +127,18 @@ func (ps *PayoutService) ExecuteReversal(ctx context.Context, originalTxnID, use
 		if err != nil {
 			return fmt.Errorf("failed to get/create user account: %w", err)
 		}
+		// pess lock
+		if err := ps.accountRepo.LockAccount(ctxWithTx, userAcct.ID); err != nil {
+			return err
+		}
+		currentBalance, err := ps.ledgerRepo.GetAccountBalance(ctxWithTx, userAcct)
+		if err != nil {
+			return err
+		}
+		if currentBalance < amount {
+			return ErrInsufficientFunds
+		}
+
 		sysUser, err := ps.userRepo.FindByEmail(ctxWithTx, ps.sysEmail)
 		if err != nil {
 			return fmt.Errorf("failed to find system user: %w", err)
