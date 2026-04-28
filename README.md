@@ -102,6 +102,7 @@ At production scale, there are a few features I'd implement to ensure things don
 - implement a Dead Letter Queues (DLQ) to ensure failed transactions can be retried
 - Automated Reconciliation: A nightly or weekly (depending on regulation) CRON job to sum the entire ledger_entries table to ensure the sum of all currencies equal 0. Currently I'm only balancing transactions, with the expectation that if every transcction is mathematically balanced, the ledger (an aggregation of these transactions) must also be perfectly balanced.
   A periodic CRON job would improve consistency. If it fails, an SRE alert should triggered.
+- Rate Limiting
 - On SRE alerts, I'd also implement a metrics monitoring system (most likely Prometheus, as the system is in Go), as well as Grafana charts and automated alets for when metrics surpass or fall below certain thresholds.
 - i might also move quotes from a postgres table to a Redis cache with a ttl
 - cookies are currently active for 30 mins for ease of testability during development. in prod, i'd also consider bring in that down to 5 mins, and implementing refresh tokens and a token revocation list for logouts.
