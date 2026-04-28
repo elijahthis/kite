@@ -62,7 +62,11 @@ func RequireAuth(secretKey string) func(http.HandlerFunc) http.HandlerFunc {
 				return
 			}
 
-			subject, _ := token.Claims.GetSubject()
+			subject, err := token.Claims.GetSubject()
+			if err != nil {
+				writeError(w, http.StatusUnauthorized, "unauthorized", "Missing Subject", err)
+				return
+			}
 			userID, err := uuid.Parse(subject)
 			if err != nil {
 				writeError(w, http.StatusUnauthorized, "unauthorized", "Invalid user ID in token", err)

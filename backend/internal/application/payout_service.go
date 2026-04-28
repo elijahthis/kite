@@ -89,20 +89,33 @@ func (ps *PayoutService) simulateBank(ctx context.Context, txnID, userID uuid.UU
 
 	if success {
 		log.Info().Msgf("Payout %s succeeded", txnID)
-		_ = ps.ledgerRepo.UpdateTransactionStatus(ctx, txnID, domain.SUCCESS)
+		if err := ps.ledgerRepo.UpdateTransactionStatus(ctx, txnID, domain.SUCCESS); err != nil {
+			log.Info().Msgf("Payout %s: Failed to update transaction status", txnID)
+		}
 	} else {
 		log.Info().Msgf("Payout %s failed. Initiating reversal.", txnID)
-		_ = ps.ledgerRepo.UpdateTransactionStatus(ctx, txnID, domain.FAILED)
+		if err := ps.ledgerRepo.UpdateTransactionStatus(ctx, txnID, domain.FAILED); err != nil {
+			log.Info().Msgf("Payout %s: Failed to update transaction status", txnID)
+		}
 
 		ps.executeReversal(ctx, txnID, userID, amount, currency)
 	}
 }
 
 func (ps *PayoutService) executeReversal(ctx context.Context, originalTxnID, userID uuid.UUID, amount int64, currency domain.Currency) {
-	_ = ps.atomicUnit.Do(ctx, func(ctxWithTx context.Context) error {
-		userAcct, _ := getOrCreateAccountUtil(ps.accountRepo, ctxWithTx, userID, currency)
-		sysUser, _ := ps.userRepo.FindByEmail(ctxWithTx, ps.sysEmail)
-		systemAcct, _ := getOrCreateAccountUtil(ps.accountRepo, ctxWithTx, sysUser.ID, currency)
+	err := ps.atomicUnit.Do(ctx, func(ctxWithTx context.Context) error {
+		userAcct, err := getOrCreateAccountUtil(ps.accountRepo, ctxWithTx, userID, currency)
+		if err != nil {
+			return fmt.Errorf("failed to get/create user account: %w", err)
+		}
+		sysUser, err := ps.userRepo.FindByEmail(ctxWithTx, ps.sysEmail)
+		if err != nil {
+			return fmt.Errorf("failed to find system user: %w", err)
+		}
+		systemAcct, err := getOrCreateAccountUtil(ps.accountRepo, ctxWithTx, sysUser.ID, currency)
+		if err != nil {
+			return fmt.Errorf("failed to get/create system account: %w", err)
+		}
 
 		// reversal linked to via original reference
 		reference := fmt.Sprintf("REVERSAL-%s", originalTxnID.String())
@@ -111,7 +124,23 @@ func (ps *PayoutService) executeReversal(ctx context.Context, originalTxnID, use
 		builder.AddEntry(systemAcct.ID, amount, domain.DEBIT, currency)
 		builder.AddEntry(userAcct.ID, amount, domain.CREDIT, currency)
 
-		txn, _ := builder.Build()
+		txn, err := builder.Build()
+		if err != nil {
+			return fmt.Errorf("failed to build reversal transaction: %w", err)
+		}
 		return ps.ledgerRepo.AppendTransaction(ctxWithTx, txn)
 	})
+	if err != nil {
+		log.Error().
+			Err(err).
+			Str("original_txn_id", originalTxnID.String()).
+			Str("user_id", userID.String()).
+			Int64("amount", amount).
+			Str("currency", currency.String()).
+			Msg("CRITICAL: Failed to execute ledger reversal. User funds stranded.")
+	} else {
+		log.Info().
+			Str("original_txn_id", originalTxnID.String()).
+			Msg("Reversal executed successfully")
+	}
 }
