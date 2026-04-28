@@ -3,7 +3,6 @@ package application
 import (
 	"context"
 	"fmt"
-	"math/rand"
 	"time"
 
 	"github.com/elijahthis/kite/internal/domain"
@@ -12,21 +11,37 @@ import (
 )
 
 type PayoutService struct {
-	atomicUnit  domain.AtomicUnit
-	userRepo    domain.UserRepository
-	accountRepo domain.AccountRepository
-	ledgerRepo  domain.LedgerRepository
-	sysEmail    string
+	atomicUnit   domain.AtomicUnit
+	userRepo     domain.UserRepository
+	accountRepo  domain.AccountRepository
+	ledgerRepo   domain.LedgerRepository
+	sysEmail     string
+	bankSimFn    func() bool
+	bankSimDelay time.Duration
 }
 
-func NewPayoutService(atomicUnit domain.AtomicUnit, ur domain.UserRepository, ar domain.AccountRepository, lr domain.LedgerRepository, sysEmail string) *PayoutService {
-	return &PayoutService{
+type PayoutServiceOption func(*PayoutService)
+
+func WithBankSimulation(outcomeFn func() bool, delay time.Duration) PayoutServiceOption {
+	return func(ps *PayoutService) {
+		ps.bankSimFn = outcomeFn
+		ps.bankSimDelay = delay
+	}
+}
+
+func NewPayoutService(atomicUnit domain.AtomicUnit, ur domain.UserRepository, ar domain.AccountRepository, lr domain.LedgerRepository, sysEmail string, opts ...PayoutServiceOption) *PayoutService {
+	ps := &PayoutService{
 		atomicUnit:  atomicUnit,
 		userRepo:    ur,
 		accountRepo: ar,
 		ledgerRepo:  lr,
 		sysEmail:    sysEmail,
 	}
+
+	for _, opt := range opts {
+		opt(ps)
+	}
+	return ps
 }
 
 func (ps *PayoutService) ExecutePayout(ctx context.Context, userID uuid.UUID, currency domain.Currency, amount int64, accountNum, bankCode string) (*domain.Transaction, error) {
@@ -79,13 +94,13 @@ func (ps *PayoutService) ExecutePayout(ctx context.Context, userID uuid.UUID, cu
 }
 
 func (ps *PayoutService) simulateBank(ctx context.Context, txnID, userID uuid.UUID, amount int64, currency domain.Currency) {
-	time.Sleep(5 * time.Second)
+	time.Sleep(ps.bankSimDelay / 2)
 
 	ps.ledgerRepo.UpdateTransactionStatus(ctx, txnID, domain.PROCESSING)
 	log.Info().Msgf("Payout %s processing", txnID)
-	time.Sleep(2 * time.Second)
+	time.Sleep(ps.bankSimDelay - ps.bankSimDelay/2)
 
-	success := rand.Float32() < 0.80
+	success := ps.bankSimFn()
 
 	if success {
 		log.Info().Msgf("Payout %s succeeded", txnID)

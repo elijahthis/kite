@@ -28,12 +28,14 @@ type mockLedgerRepo struct {
 	txns         map[string]*domain.Transaction
 	balances     map[uuid.UUID]int64
 	ReversalSeen bool
+	statusLog    []domain.Status
 }
 
 func newMockLedgerRepo() *mockLedgerRepo {
 	return &mockLedgerRepo{
-		txns:     make(map[string]*domain.Transaction),
-		balances: make(map[uuid.UUID]int64),
+		txns:      make(map[string]*domain.Transaction),
+		balances:  make(map[uuid.UUID]int64),
+		statusLog: []domain.Status{},
 	}
 }
 
@@ -62,6 +64,9 @@ func (m *mockLedgerRepo) GetAllAccountBalances(ctx context.Context, userID uuid.
 	return nil, nil
 }
 func (m *mockLedgerRepo) UpdateTransactionStatus(ctx context.Context, txnID uuid.UUID, status domain.Status) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.statusLog = append(m.statusLog, status)
 	return nil
 }
 func (m *mockLedgerRepo) GetTransactionHistory(ctx context.Context, userID uuid.UUID, limit, offset int) ([]domain.TransactionHistory, error) {
@@ -203,7 +208,7 @@ func TestMismatchedUsers_Quote(t *testing.T) {
 	assert.ErrorIs(t, err, domain.ErrQuoteBelongsToAnotherUser)
 }
 
-func TestFailed_Payout_Reversal(t *testing.T) {
+func TestFailed_Payout_Reversal_Unit(t *testing.T) {
 	mockLedger := newMockLedgerRepo()
 	payoutService := application.NewPayoutService(
 		&mockAtomicUnit{}, &mockUserRepo{}, &mockAccountRepo{}, mockLedger, "sys@grey.co",
@@ -221,4 +226,56 @@ func TestFailed_Payout_Reversal(t *testing.T) {
 	expectedReference := "REVERSAL-" + originalTxnID.String()
 	_, exists := mockLedger.txns[expectedReference]
 	assert.True(t, exists, "Reversal must be linked to the original transaction ID")
+}
+
+func TestFailed_Payout_Reversal_Integration(t *testing.T) {
+	mockLedger := newMockLedgerRepo()
+
+	payoutService := application.NewPayoutService(
+		&mockAtomicUnit{}, &mockUserRepo{}, &mockAccountRepo{}, mockLedger, "sys@grey.co",
+		application.WithBankSimulation(func() bool { return false }, 0),
+	)
+
+	userID := uuid.New()
+	AMOUNT := 5000
+	CURRENCY := domain.NGN
+	txn, err := payoutService.ExecutePayout(
+		context.Background(), userID, CURRENCY, int64(AMOUNT), "0123456789", "058",
+	)
+	assert.NoError(t, err, "payout initiation should succeed")
+	assert.NotNil(t, txn)
+
+	time.Sleep(20 * time.Millisecond)
+
+	assert.Len(t, mockLedger.txns, 2, "ledger must contain the original payout + the reversal")
+	assert.True(t, mockLedger.ReversalSeen, "a REVERSAL entry must be written after failure")
+
+	// pending → PROCESSING → FAILED
+	assert.Contains(t, mockLedger.statusLog, domain.PROCESSING)
+	assert.Contains(t, mockLedger.statusLog, domain.FAILED)
+
+	expectedRef := "REVERSAL-" + txn.ID.String()
+	_, exists := mockLedger.txns[expectedRef]
+	assert.True(t, exists, "reversal reference must be traceable to the original payout ID")
+}
+
+func TestSuccessful_Payout_No_Reversal(t *testing.T) {
+	mockLedger := newMockLedgerRepo()
+
+	payoutService := application.NewPayoutService(
+		&mockAtomicUnit{}, &mockUserRepo{}, &mockAccountRepo{}, mockLedger, "sys@grey.co",
+		application.WithBankSimulation(func() bool { return true }, 0),
+	)
+
+	_, err := payoutService.ExecutePayout(
+		context.Background(), uuid.New(), domain.NGN, 5000, "0123456789", "058",
+	)
+	assert.NoError(t, err)
+
+	time.Sleep(10 * time.Millisecond)
+
+	assert.False(t, mockLedger.ReversalSeen, "a successful payout must never write a reversal")
+	assert.Len(t, mockLedger.txns, 1, "ledger must contain only the original payout")
+	assert.Contains(t, mockLedger.statusLog, domain.PROCESSING)
+	assert.Contains(t, mockLedger.statusLog, domain.SUCCESS)
 }

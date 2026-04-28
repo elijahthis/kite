@@ -162,6 +162,41 @@ func TestTransactionBuilder_BalancesCorrectly(t *testing.T) {
 			wantErr:        domain.ErrEmptyTransaction,
 			wantEntryCount: 0,
 		},
+		{
+			name:      "Transaction with same side entries 1",
+			txType:    domain.DEPOSIT,
+			status:    domain.SUCCESS,
+			reference: "ref-9",
+			entries: []struct {
+				accountID uuid.UUID
+				amount    int64
+				entryType domain.Direction
+				currency  domain.Currency
+			}{
+				{acct1, 500, domain.CREDIT, domain.USD},
+				{acct1, 200, domain.CREDIT, domain.USD},
+				{acct1, 500, domain.CREDIT, domain.USD},
+			},
+			wantErr:        domain.ErrTransactionImbalance,
+			wantEntryCount: 0,
+		},
+		{
+			name:      "Transaction with same side entries 2",
+			txType:    domain.DEPOSIT,
+			status:    domain.SUCCESS,
+			reference: "ref-10",
+			entries: []struct {
+				accountID uuid.UUID
+				amount    int64
+				entryType domain.Direction
+				currency  domain.Currency
+			}{
+				{acct1, 500, domain.DEBIT, domain.USD},
+				{acct1, 500, domain.DEBIT, domain.USD},
+			},
+			wantErr:        domain.ErrTransactionImbalance,
+			wantEntryCount: 0,
+		},
 	}
 
 	for _, tt := range tests {

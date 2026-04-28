@@ -2,6 +2,7 @@ package config
 
 import (
 	"context"
+	"math/rand/v2"
 	"time"
 
 	"github.com/elijahthis/kite/internal/application"
@@ -95,7 +96,7 @@ func generateServices(f *Factory) *application.Services {
 		Deposit:    application.NewDepositService(f.Repos.AccountRepo, f.Repos.LedgerRepo, f.Repos.UserRepo, f.Repos.AtomicUnit, f.Config.SYSTEM_USER_EMAIL),
 		Conversion: application.NewConversionService(f.Repos.FxProvider, f.Repos.QuoteRepo, f.Repos.AtomicUnit, f.Repos.UserRepo, f.Repos.AccountRepo, f.Repos.LedgerRepo, f.Config.SYSTEM_USER_EMAIL),
 		Wallet:     application.NewWalletService(f.Repos.LedgerRepo),
-		Payout:     application.NewPayoutService(f.Repos.AtomicUnit, f.Repos.UserRepo, f.Repos.AccountRepo, f.Repos.LedgerRepo, f.Config.SYSTEM_USER_EMAIL),
+		Payout:     application.NewPayoutService(f.Repos.AtomicUnit, f.Repos.UserRepo, f.Repos.AccountRepo, f.Repos.LedgerRepo, f.Config.SYSTEM_USER_EMAIL, application.WithBankSimulation(func() bool { return rand.Float32() < 0.5 }, 2*time.Second)),
 		History:    application.NewHistoryService(f.Repos.LedgerRepo),
 	}
 }
