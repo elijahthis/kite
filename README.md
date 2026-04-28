@@ -40,6 +40,9 @@ You should be able to interact with the
 make test
 ```
 
+### 3. E-R Diagram
+https://mermaid.ai/d/e1bb123e-27f2-449f-bb3e-03035a9f2e63
+
 ## Core Architectural Decisions
 
 The backend is structured to ensure separation of business logic from infra, DB and HTTP layers. This makes it easier to test the core logic of the system without http/db overhead, as well as makes it such that the system an easily be extended in the future to allow for other means of interfacing with it (e.g. gRPC, CLI, etc.)
