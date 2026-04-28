@@ -8,6 +8,7 @@ import InputComponent from "../../components/form/InputComponent";
 import AuthCard from "../../components/auth/AuthCard";
 import AuthLayout from "../../layouts/AuthLayout";
 import Button from "../../components/Button";
+import { extractApiError } from "../../utils/errors";
 
 export default function Signup() {
 	const navigate = useNavigate();
@@ -44,8 +45,7 @@ export default function Signup() {
 				{/* Error State */}
 				{signupMutation.isError && (
 					<AuthBanner>
-						{(signupMutation.error as any).response?.data?.message ||
-							"Failed to create account"}
+						{extractApiError(signupMutation.error, "Failed to create account")}
 					</AuthBanner>
 				)}
 

@@ -8,6 +8,7 @@ import AuthLayout from "../../layouts/AuthLayout";
 import { H2 } from "../../components/headings";
 import AuthBanner from "../../components/auth/AuthBanner";
 import Button from "../../components/Button";
+import { extractApiError } from "../../utils/errors";
 
 export default function Login() {
 	const navigate = useNavigate();
@@ -37,8 +38,7 @@ export default function Login() {
 				{/* Error State */}
 				{loginMutation.isError && (
 					<AuthBanner>
-						{(loginMutation.error as any).response?.data?.message ||
-							"Failed to login"}
+						{extractApiError(loginMutation.error, "Failed to login")}
 					</AuthBanner>
 				)}
 
