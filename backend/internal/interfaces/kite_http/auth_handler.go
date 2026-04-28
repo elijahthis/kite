@@ -70,7 +70,7 @@ func (ah *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.SetCookie(w, &http.Cookie{
-		Name:     "kite_session",
+		Name:     string(kiteSessionKey),
 		Value:    token,
 		Path:     "/",
 		HttpOnly: true,

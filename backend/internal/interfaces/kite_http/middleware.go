@@ -10,13 +10,14 @@ import (
 )
 
 type contextKey string
+type cookieKey string
 
 const UserIDKey contextKey = "user_id"
+const kiteSessionKey cookieKey = "kite_session"
 
 func corsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		// w.Header().Set("Access-Control-Allow-Origin", "http://localhost:5173")
+		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:5173")
 		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
 		w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, Authorization")
 		w.Header().Set("Access-Control-Allow-Credentials", "true")
@@ -42,12 +43,10 @@ func loggingMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-// will add logging middleware later
-
 func RequireAuth(secretKey string) func(http.HandlerFunc) http.HandlerFunc {
 	return func(next http.HandlerFunc) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
-			cookie, err := r.Cookie("kite_session")
+			cookie, err := r.Cookie(string(kiteSessionKey))
 			if err != nil {
 				writeError(w, http.StatusUnauthorized, "unauthorized", "Missing session cookie", err)
 				return
