@@ -49,6 +49,12 @@ The backend is structured to ensure separation of business logic from infra, DB 
 - `interfaces/`: Handles HTTP routing, middleware, and JSON serialization.
 - `infra/`: Contains Postgres implementations, FX API integrations, and cryptography.
 
+## Auth Choice
+
+I chose a token-based authentication mechanism using JWTs, but sent as session-like cookies.
+
+Instead of sending the JWT in the response body to be stored in the frontend's localStorage (which is highly vulnerable to XSS), the backend directly sets the JWT in a strictly `HttpOnly`, `Secure`, and `SameSite=Strict` cookie. This ccombines the stateless scalability of token-based auth with the security of traditional server-side sessions.
+
 ### The Double-Entry Ledger System
 
 Kite does not store balances as mutable rows in a database. Instead, balances are calculated dynamically from an immutable, append-only double-entry ledger.
@@ -100,4 +106,8 @@ At production scale, there are a few features I'd implement to ensure things don
 
 ## What breaks first at 1M users?
 
-## Trade-offs made
+- most likely the goroutine that handles payout. Too many goroutines spawned, we'd run out of memory quickly.
+  Fix: Move to a worker pool consuming from a messaging queue (Kafka/SQS) with a Dead Letter Queue (DLQ) for retries.
+- DB as well: We'll need to horizontally scale Postgres.
+- FX Cache: We'd need to get rid of the in-memory conversion cache.
+- Lack of periodic automatic ledger-wide balancing to spot data corruption quickly.
