@@ -39,10 +39,10 @@ func (ah *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	user, err := ah.service.Register(r.Context(), req.Email, req.Password, req.FirstName)
 	if err != nil {
 		if err == domain.ErrUserAlreadyExists {
-			writeError(w, http.StatusBadRequest, "signup_failed", err.Error(), err)
+			writeError(r.Context(), w, http.StatusBadRequest, "signup_failed", err.Error(), err)
 			return
 		}
-		writeError(w, http.StatusInternalServerError, "server_error", "An internal error occurred", err)
+		writeError(r.Context(), w, http.StatusInternalServerError, "server_error", "An internal error occurred", err)
 		return
 	}
 
@@ -62,10 +62,10 @@ func (ah *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	token, err := ah.service.Login(r.Context(), req.Email, req.Password)
 	if err != nil {
 		if err == domain.ErrInvalidCredentials {
-			writeError(w, http.StatusBadRequest, "auth_failed", err.Error(), err)
+			writeError(r.Context(), w, http.StatusBadRequest, "auth_failed", err.Error(), err)
 			return
 		}
-		writeError(w, http.StatusInternalServerError, "server_error", "An internal error occurred", err)
+		writeError(r.Context(), w, http.StatusInternalServerError, "server_error", "An internal error occurred", err)
 		return
 	}
 

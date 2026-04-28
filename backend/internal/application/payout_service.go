@@ -94,23 +94,25 @@ func (ps *PayoutService) ExecutePayout(ctx context.Context, userID uuid.UUID, cu
 }
 
 func (ps *PayoutService) simulateBank(ctx context.Context, txnID, userID uuid.UUID, amount int64, currency domain.Currency) {
+	logger := log.Ctx(ctx)
+
 	time.Sleep(ps.bankSimDelay / 2)
 
 	ps.ledgerRepo.UpdateTransactionStatus(ctx, txnID, domain.PROCESSING)
-	log.Info().Msgf("Payout %s processing", txnID)
+	logger.Info().Msgf("Payout %s processing", txnID)
 	time.Sleep(ps.bankSimDelay - ps.bankSimDelay/2)
 
 	success := ps.bankSimFn()
 
 	if success {
-		log.Info().Msgf("Payout %s succeeded", txnID)
+		logger.Info().Msgf("Payout %s succeeded", txnID)
 		if err := ps.ledgerRepo.UpdateTransactionStatus(ctx, txnID, domain.SUCCESS); err != nil {
-			log.Info().Msgf("Payout %s: Failed to update transaction status", txnID)
+			logger.Info().Msgf("Payout %s: Failed to update transaction status", txnID)
 		}
 	} else {
-		log.Info().Msgf("Payout %s failed. Initiating reversal.", txnID)
+		logger.Info().Msgf("Payout %s failed. Initiating reversal.", txnID)
 		if err := ps.ledgerRepo.UpdateTransactionStatus(ctx, txnID, domain.FAILED); err != nil {
-			log.Info().Msgf("Payout %s: Failed to update transaction status", txnID)
+			logger.Info().Msgf("Payout %s: Failed to update transaction status", txnID)
 		}
 
 		ps.ExecuteReversal(ctx, txnID, userID, amount, currency)
@@ -118,6 +120,8 @@ func (ps *PayoutService) simulateBank(ctx context.Context, txnID, userID uuid.UU
 }
 
 func (ps *PayoutService) ExecuteReversal(ctx context.Context, originalTxnID, userID uuid.UUID, amount int64, currency domain.Currency) {
+	logger := log.Ctx(ctx)
+
 	err := ps.atomicUnit.Do(ctx, func(ctxWithTx context.Context) error {
 		userAcct, err := getOrCreateAccountUtil(ps.accountRepo, ctxWithTx, userID, currency)
 		if err != nil {
@@ -146,7 +150,7 @@ func (ps *PayoutService) ExecuteReversal(ctx context.Context, originalTxnID, use
 		return ps.ledgerRepo.AppendTransaction(ctxWithTx, txn)
 	})
 	if err != nil {
-		log.Error().
+		logger.Error().
 			Err(err).
 			Str("original_txn_id", originalTxnID.String()).
 			Str("user_id", userID.String()).
@@ -154,7 +158,7 @@ func (ps *PayoutService) ExecuteReversal(ctx context.Context, originalTxnID, use
 			Str("currency", currency.String()).
 			Msg("CRITICAL: Failed to execute ledger reversal. User funds stranded.")
 	} else {
-		log.Info().
+		logger.Info().
 			Str("original_txn_id", originalTxnID.String()).
 			Msg("Reversal executed successfully")
 	}

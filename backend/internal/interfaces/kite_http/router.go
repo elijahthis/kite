@@ -26,26 +26,25 @@ func NewRouter() *Router {
 
 func (r *Router) SetupRouter(h Handlers, jwtSecret string) {
 	if h.Auth != nil {
-		r.Router.HandleFunc("POST /api/v1/auth/register", h.Auth.Register)
-		r.Router.HandleFunc("POST /api/v1/auth/login", h.Auth.Login)
+		r.Router.HandleFunc("POST /api/v1/auth/register", ApplyMiddleware(h.Auth.Register, RequestLogger))
+		r.Router.HandleFunc("POST /api/v1/auth/login", ApplyMiddleware(h.Auth.Login, RequestLogger))
 	}
 
 	if h.Deposit != nil {
-		r.Router.HandleFunc("POST /api/v1/deposits", RequireAuth(jwtSecret)(h.Deposit.Create))
+		r.Router.HandleFunc("POST /api/v1/deposits", ApplyMiddleware(h.Deposit.Create, RequireAuth(jwtSecret), RequestLogger))
 	}
 
 	if h.Conversion != nil {
-		r.Router.HandleFunc("POST /api/v1/conversions/quote", RequireAuth(jwtSecret)(h.Conversion.GenerateQuote))
-		r.Router.HandleFunc("POST /api/v1/conversions/execute", RequireAuth(jwtSecret)(h.Conversion.ExecuteQuote))
+		r.Router.HandleFunc("POST /api/v1/conversions/execute", ApplyMiddleware(h.Conversion.ExecuteQuote, RequireAuth(jwtSecret), RequestLogger))
 	}
 	if h.Wallet != nil {
-		r.Router.HandleFunc("GET /api/v1/balances", RequireAuth(jwtSecret)(h.Wallet.GetBalances))
+		r.Router.HandleFunc("GET /api/v1/balances", ApplyMiddleware(h.Wallet.GetBalances, RequireAuth(jwtSecret), RequestLogger))
 	}
 	if h.Payout != nil {
-		r.Router.HandleFunc("POST /api/v1/payouts", RequireAuth(jwtSecret)(h.Payout.Create))
+		r.Router.HandleFunc("POST /api/v1/payouts", ApplyMiddleware(h.Payout.Create, RequireAuth(jwtSecret), RequestLogger))
 	}
 	if h.History != nil {
-		r.Router.HandleFunc("GET /api/v1/transactions", RequireAuth(jwtSecret)(h.History.GetHistory))
+		r.Router.HandleFunc("GET /api/v1/transactions", ApplyMiddleware(h.History.GetHistory, RequireAuth(jwtSecret), RequestLogger))
 	}
 
 	handler := corsMiddleware(r.Router)

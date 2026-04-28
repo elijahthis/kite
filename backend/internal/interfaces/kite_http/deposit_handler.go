@@ -36,17 +36,17 @@ func (dh *DepositHandler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if req.Amount <= 0 {
-		writeError(w, http.StatusBadRequest, "invalid_amount", "Deposit amount must be greater than zero", nil)
+		writeError(r.Context(), w, http.StatusBadRequest, "invalid_amount", "Deposit amount must be greater than zero", nil)
 		return
 	}
 
 	if req.Reference == "" {
-		writeError(w, http.StatusBadRequest, "missing_reference", "Idempotency reference is required", nil)
+		writeError(r.Context(), w, http.StatusBadRequest, "missing_reference", "Idempotency reference is required", nil)
 		return
 	}
 	parsedCurrency, ok := domain.GetCurrency(req.Currency)
 	if !ok {
-		writeError(w, http.StatusBadRequest, "invalid_currency", "Currency parsed is invalid", nil)
+		writeError(r.Context(), w, http.StatusBadRequest, "invalid_currency", "Currency parsed is invalid", nil)
 		return
 	}
 
@@ -60,7 +60,7 @@ func (dh *DepositHandler) Create(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		writeError(w, http.StatusInternalServerError, "deposit_failed", "Failed to process deposit", err)
+		writeError(r.Context(), w, http.StatusInternalServerError, "deposit_failed", "Failed to process deposit", err)
 		return
 	}
 

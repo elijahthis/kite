@@ -23,7 +23,7 @@ func (h *WalletHandler) GetBalances(w http.ResponseWriter, r *http.Request) {
 
 	balances, err := h.service.GetBalances(r.Context(), userID)
 	if err != nil {
-		writeError(w, http.StatusInternalServerError, "fetch_failed", "Failed to retrieve balances", err)
+		writeError(r.Context(), w, http.StatusInternalServerError, "fetch_failed", "Failed to retrieve balances", err)
 		return
 	}
 

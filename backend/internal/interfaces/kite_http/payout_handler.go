@@ -36,27 +36,27 @@ func (ph *PayoutHandler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if req.Amount <= 0 {
-		writeError(w, http.StatusBadRequest, "invalid_amount", "Payout amount must be strictly positive", nil)
+		writeError(r.Context(), w, http.StatusBadRequest, "invalid_amount", "Payout amount must be strictly positive", nil)
 		return
 	}
 	if req.AccountNumber == "" || req.BankCode == "" || req.AccountName == "" {
-		writeError(w, http.StatusBadRequest, "missing_bank_details", "Recipient bank details are required", nil)
+		writeError(r.Context(), w, http.StatusBadRequest, "missing_bank_details", "Recipient bank details are required", nil)
 		return
 	}
 
 	parsedCurrency, ok := domain.GetCurrency(req.SourceCurrency)
 	if !ok {
-		writeError(w, http.StatusBadRequest, "invalid_currency", "The provided source currency is invalid", nil)
+		writeError(r.Context(), w, http.StatusBadRequest, "invalid_currency", "The provided source currency is invalid", nil)
 		return
 	}
 
 	txn, err := ph.service.ExecutePayout(r.Context(), userID, parsedCurrency, req.Amount, req.AccountNumber, req.BankCode)
 	if err != nil {
 		if err == application.ErrInsufficientFunds {
-			writeError(w, http.StatusBadRequest, "insufficient_funds", err.Error(), nil)
+			writeError(r.Context(), w, http.StatusBadRequest, "insufficient_funds", err.Error(), nil)
 			return
 		}
-		writeError(w, http.StatusInternalServerError, "payout_failed", "Failed to initiate payout", err)
+		writeError(r.Context(), w, http.StatusInternalServerError, "payout_failed", "Failed to initiate payout", err)
 		return
 	}
 

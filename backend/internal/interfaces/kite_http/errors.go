@@ -1,6 +1,7 @@
 package interfaces
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 
@@ -12,11 +13,13 @@ type ErrorResponse struct {
 	Message string `json:"message"`
 }
 
-func writeError(w http.ResponseWriter, status int, errCode, msg string, err error) {
+func writeError(ctx context.Context, w http.ResponseWriter, status int, errCode, msg string, err error) {
+	logger := log.Ctx(ctx)
+
 	if err != nil {
-		log.Error().Err(err).Msg(err.Error())
+		logger.Error().Err(err).Msg(err.Error())
 	} else {
-		log.Error().Msg(msg)
+		logger.Error().Msg(msg)
 	}
 
 	w.Header().Set("Content-Type", "application/json")

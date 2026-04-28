@@ -37,7 +37,7 @@ func (h *HistoryHandler) GetHistory(w http.ResponseWriter, r *http.Request) {
 
 	history, err := h.service.GetUserHistory(r.Context(), userID, page, limit)
 	if err != nil {
-		writeError(w, http.StatusInternalServerError, "fetch_failed", "Failed to retrieve transaction history", err)
+		writeError(r.Context(), w, http.StatusInternalServerError, "fetch_failed", "Failed to retrieve transaction history", err)
 		return
 	}
 
