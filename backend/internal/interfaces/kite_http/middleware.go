@@ -42,18 +42,6 @@ func corsMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func loggingMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.
-			Info().
-			Str("method", r.Method).
-			Str("path", r.URL.Path).
-			Str("ip", r.RemoteAddr).
-			Msgf("Incoming Request: ")
-		next.ServeHTTP(w, r)
-	})
-}
-
 func RequireAuth(secretKey string) func(http.HandlerFunc) http.HandlerFunc {
 	return func(next http.HandlerFunc) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {

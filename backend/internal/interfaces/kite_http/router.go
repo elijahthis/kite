@@ -49,7 +49,6 @@ func (r *Router) SetupRouter(h Handlers, jwtSecret string) {
 	}
 
 	handler := corsMiddleware(r.Router)
-	handler = loggingMiddleware(handler)
 
 	r.Handler = handler
 	// return r.Router

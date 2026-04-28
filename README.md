@@ -24,7 +24,7 @@ Kite is a secure prototype of a multi-currency wallet system that allows users s
 ### 2. Running the system
 
 ```bash
-git clone [https://github.com/elijahthis/kite.git](https://github.com/elijahthis/kite.git)
+git clone https://github.com/elijahthis/kite.git
 cd kite
 make up
 ```
