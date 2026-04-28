@@ -86,7 +86,7 @@ func (s *ConversionService) ExecuteQuote(ctx context.Context, userID uuid.UUID, 
 		}
 
 		if quote.UserID != userID {
-			return errors.New("unauthorized: quote belongs to another user")
+			return domain.ErrQuoteBelongsToAnotherUser
 		}
 
 		if time.Now().UTC().After(quote.ExpiresAt) {

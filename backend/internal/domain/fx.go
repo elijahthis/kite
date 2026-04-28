@@ -9,9 +9,10 @@ import (
 )
 
 var (
-	ErrQuoteExpired  = errors.New("this conversion quote has expired")
-	ErrQuoteNotFound = errors.New("quote not found")
-	ErrRateFetch     = errors.New("failed to fetch exchange rate")
+	ErrQuoteBelongsToAnotherUser = errors.New("unauthorized: quote belongs to another user")
+	ErrQuoteExpired              = errors.New("this conversion quote has expired")
+	ErrQuoteNotFound             = errors.New("quote not found")
+	ErrRateFetch                 = errors.New("failed to fetch exchange rate")
 )
 
 type Quote struct {

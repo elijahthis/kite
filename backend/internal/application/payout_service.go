@@ -98,11 +98,11 @@ func (ps *PayoutService) simulateBank(ctx context.Context, txnID, userID uuid.UU
 			log.Info().Msgf("Payout %s: Failed to update transaction status", txnID)
 		}
 
-		ps.executeReversal(ctx, txnID, userID, amount, currency)
+		ps.ExecuteReversal(ctx, txnID, userID, amount, currency)
 	}
 }
 
-func (ps *PayoutService) executeReversal(ctx context.Context, originalTxnID, userID uuid.UUID, amount int64, currency domain.Currency) {
+func (ps *PayoutService) ExecuteReversal(ctx context.Context, originalTxnID, userID uuid.UUID, amount int64, currency domain.Currency) {
 	err := ps.atomicUnit.Do(ctx, func(ctxWithTx context.Context) error {
 		userAcct, err := getOrCreateAccountUtil(ps.accountRepo, ctxWithTx, userID, currency)
 		if err != nil {
