@@ -91,7 +91,7 @@ export default function Conversion() {
 		});
 	};
 
-	const handleExecute = (event: React.MouseEvent<HTMLButtonElement>) => {
+	const handleExecute = (_: React.MouseEvent<HTMLButtonElement>) => {
 		if (!quote?.quote_id) return;
 		executeMutation.mutate(quote.quote_id);
 	};

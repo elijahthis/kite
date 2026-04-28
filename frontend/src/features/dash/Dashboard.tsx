@@ -1,6 +1,4 @@
 import MainLayout from "../../layouts/MainLayout";
-import { H2 } from "../../components/headings";
-import { formatCurrency } from "../../utils";
 import DashBalances from "./DashBalances";
 import DashTransactionHistory from "./DashTransactionHistory";
 import DashQuickActions from "./DashQuickActions";

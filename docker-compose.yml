@@ -1,0 +1,54 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: kite-db
+    environment:
+      POSTGRES_USER: kite_user
+      POSTGRES_PASSWORD: kite_password
+      POSTGRES_DB: kite_db
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U kite_user -d kite_db" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - kite_pgdata:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: kite-backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      # Connection uses the internal Docker network name 'postgres'
+      DB_CONN_STR: "postgres://kite_user:kite_password@postgres:5432/kite_db?sslmode=\
+        disable"
+      DB_MIGRATIONS_DIRECTORY: "file://db/migrations"
+      PORT: "8080"
+      JWT_SECRET_KEY: "super-secret-kite-key"
+      SYSTEM_USER_NAME: "System Wallet"
+      SYSTEM_USER_EMAIL: "sys@grey.co"
+      SYSTEM_USER_PASSWORD: "secure-system-password"
+    ports:
+      - "8080:8080"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: kite-frontend
+    depends_on:
+      - backend
+    ports:
+      # Maps local port 5173 to the Nginx container's port 80
+      - "5173:80"
+
+volumes:
+  kite_pgdata:

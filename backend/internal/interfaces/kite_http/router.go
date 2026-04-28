@@ -35,6 +35,7 @@ func (r *Router) SetupRouter(h Handlers, jwtSecret string) {
 	}
 
 	if h.Conversion != nil {
+		r.Router.HandleFunc("POST /api/v1/conversions/quote", ApplyMiddleware(h.Conversion.GenerateQuote, RequireAuth(jwtSecret), RequestLogger))
 		r.Router.HandleFunc("POST /api/v1/conversions/execute", ApplyMiddleware(h.Conversion.ExecuteQuote, RequireAuth(jwtSecret), RequestLogger))
 	}
 	if h.Wallet != nil {
