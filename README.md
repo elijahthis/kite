@@ -41,9 +41,13 @@ make test
 ```
 
 ### 3. E-R Diagram
+
 https://mermaid.ai/d/e1bb123e-27f2-449f-bb3e-03035a9f2e63
 <img width="8179" height="6257" alt="kite-erd" src="https://github.com/user-attachments/assets/bf17ad52-29c7-4ee1-8444-88961029be8c" />
 
+### 4. Loom Video:
+
+https://www.loom.com/share/5c794b8b55ca4cd4936cd599bcbfccaa
 
 ## Core Architectural Decisions
 
